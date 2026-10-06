@@ -15,6 +15,7 @@ import { Resume } from '../database/entities/resume.entity';
 import { InterviewQuestion } from '../database/entities/interview-question.entity';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { QuestionsService } from './questions.service';
+import { RecommendationsService } from './recommendations.service';
 
 @Injectable()
 export class InterviewsService {
@@ -28,6 +29,7 @@ export class InterviewsService {
     @InjectRepository(InterviewQuestion)
     private questionRepository: Repository<InterviewQuestion>,
     private questionsService: QuestionsService,
+    private recommendationsService: RecommendationsService,
   ) {}
 
   async create(userId: string, dto: CreateInterviewDto) {
@@ -258,16 +260,75 @@ export class InterviewsService {
   }
 
   async getInterviewReport(userId: string, interviewId: string) {
-    const interview = await this.findOne(userId, interviewId);
+    const interview = await this.interviewRepository.findOne({
+      where: { id: interviewId },
+      relations: [
+        'jobRole',
+        'questions',
+        'answers',
+        'answers.question',
+        'answers.evaluation',
+        'recommendations',
+      ],
+    });
+
+    if (!interview) {
+      throw new NotFoundException('Interview not found');
+    }
+
+    if (interview.userId !== userId) {
+      throw new ForbiddenException('Unauthorized access to interview report');
+    }
+
+    // If completed but not yet evaluated, generate recommendations
+    let recommendation = interview.recommendations?.[0] || null;
+    if (!recommendation && interview.status === InterviewStatus.COMPLETED) {
+      recommendation = await this.recommendationsService.generateRecommendations(interviewId);
+    }
+
+    // Sort Q&As by question number
+    const qaBreakdown = (interview.answers || []).map((ans) => ({
+      questionNumber: ans.question?.questionNumber || 1,
+      questionText: ans.question?.questionText || '',
+      questionCategory: ans.question?.questionCategory || 'General',
+      expectedPoints: ans.question?.expectedPoints || [],
+      studentAnswer: ans.answerText,
+      timeTakenSeconds: ans.timeTakenSeconds || 0,
+      evaluation: ans.evaluation
+        ? {
+            score: Number(ans.evaluation.score),
+            accuracyScore: Number(ans.evaluation.accuracyScore),
+            completenessScore: Number(ans.evaluation.completenessScore),
+            clarityScore: Number(ans.evaluation.clarityScore),
+            relevanceScore: Number(ans.evaluation.relevanceScore),
+            feedback: ans.evaluation.feedback,
+            strengths: ans.evaluation.strengths || [],
+            weaknesses: ans.evaluation.weaknesses || [],
+          }
+        : null,
+    })).sort((a, b) => a.questionNumber - b.questionNumber);
+
     return {
       id: interview.id,
       status: interview.status,
-      jobRole: interview.jobRole?.title,
-      overallScore: interview.overallScore,
+      jobRole: interview.jobRole?.title || 'Software Developer',
+      interviewType: interview.interviewType,
+      difficulty: interview.difficulty,
+      overallScore: Number(interview.overallScore || 0),
       totalQuestions: interview.totalQuestions,
       answeredQuestions: interview.answeredQuestions,
       startedAt: interview.startedAt,
       completedAt: interview.completedAt,
+      recommendations: recommendation
+        ? {
+            overallFeedback: recommendation.overallFeedback,
+            strengths: recommendation.strengths || [],
+            weaknesses: recommendation.weaknesses || [],
+            topicsToImprove: recommendation.topicsToImprove || [],
+            recommendedResources: recommendation.recommendedResources || [],
+          }
+        : null,
+      qaBreakdown,
     };
   }
 }
