@@ -11,6 +11,7 @@ import { JobRole } from '../src/database/entities/job-role.entity';
 import { Resume } from '../src/database/entities/resume.entity';
 import { InterviewQuestion } from '../src/database/entities/interview-question.entity';
 import { QuestionsService } from '../src/interviews/questions.service';
+import { RecommendationsService } from '../src/interviews/recommendations.service';
 import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 
 describe('InterviewsService', () => {
@@ -20,6 +21,7 @@ describe('InterviewsService', () => {
   let mockResumeRepo: any;
   let mockQuestionRepo: any;
   let mockQuestionsService: any;
+  let mockRecommendationsService: any;
 
   beforeEach(async () => {
     mockInterviewRepo = {
@@ -46,6 +48,11 @@ describe('InterviewsService', () => {
       }),
     };
 
+    mockRecommendationsService = {
+      generateRecommendations: jest.fn(),
+      getRecommendationByInterview: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InterviewsService,
@@ -68,6 +75,10 @@ describe('InterviewsService', () => {
         {
           provide: QuestionsService,
           useValue: mockQuestionsService,
+        },
+        {
+          provide: RecommendationsService,
+          useValue: mockRecommendationsService,
         },
       ],
     }).compile();

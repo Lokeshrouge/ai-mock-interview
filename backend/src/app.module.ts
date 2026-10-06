@@ -7,6 +7,7 @@ import { ProfilesModule } from './profiles/profiles.module';
 import { ResumesModule } from './resumes/resumes.module';
 import { JobRolesModule } from './job-roles/job-roles.module';
 import { InterviewsModule } from './interviews/interviews.module';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -22,6 +23,7 @@ import { AppController } from './app.controller';
     ResumesModule,
     JobRolesModule,
     InterviewsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [],

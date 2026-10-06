@@ -245,13 +245,20 @@ export default function InterviewRoomPage() {
                 Mock Interview Finished! 🎉
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto">
-                You have successfully completed all {totalCount} questions. Your answers are stored and ready for multi-dimensional AI scoring in Stage 8.
+                You have successfully completed all {totalCount} questions. Your answers have been evaluated with our multi-dimensional rubric and your comprehensive performance report is ready!
               </p>
             </div>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
+                href={`/interview/${interviewId}/report`}
+                className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center space-x-2"
+              >
+                <span>View Performance Report</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
                 href="/dashboard"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-all"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm transition-colors"
               >
                 Return to Dashboard
               </Link>

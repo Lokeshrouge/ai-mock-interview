@@ -7,14 +7,17 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  UseGuards,
 } from '@nestjs/common';
 import { InterviewsService } from './interviews.service';
 import { AnswersService } from './answers.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { SubmitAnswerDto } from './dto/submit-answer.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('interviews')
+@UseGuards(JwtAuthGuard)
 export class InterviewsController {
   constructor(
     private readonly interviewsService: InterviewsService,

@@ -1,0 +1,31 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "file": "backend/src/interviews/interviews.controller.ts",
+      "issue": "Missing JWT authentication guard - InterviewsController does not declare @UseGuards(JwtAuthGuard) at the class level, leaving all interview endpoints unprotected",
+      "fix": "Add @UseGuards(JwtAuthGuard) decorator to InterviewsController class like ProfilesController and other protected controllers"
+    },
+    {
+      "file": "backend/src/interviews/evaluations.service.ts",
+      "issue": "No retry logic in answer evaluation - evaluateAnswer makes a single AI service request with no retry loop despite requirement for 3-attempt retry",
+      "fix": "Implement 3-attempt retry loop with exponential backoff before falling back to heuristic scoring"
+    },
+    {
+      "file": "backend/src/interviews/evaluations.service.ts",
+      "issue": "No score validation from AI responses - AI evaluation scores are persisted without checking they're within 0-100 bounds, potentially corrupting aggregate calculations",
+      "fix": "Add validation: if (score < 0 || score > 100) use fallback score before saving evaluation records"
+    },
+    {
+      "file": "backend/src/interviews/interviews.service.ts",
+      "issue": "Interview state not reverted on question generation failure - startInterview changes status to IN_PROGRESS before generateNextQuestion, leaving interview stuck if generation fails",
+      "fix": "Wrap question generation in try-catch and revert status to CREATED on failure"
+    },
+    {
+      "file": "backend/src/interviews/answers.service.ts",
+      "issue": "No transaction boundaries for multi-step operations - submitAnswer, completeInterview, and startInterview perform multiple database writes without transactions, risking inconsistent state on partial failure",
+      "fix": "Wrap multi-step state transitions in TypeORM transactions using queryRunner or @Transaction decorator"
+    }
+  ],
+  "reviewDoc": "c:\\Users\\ravil\\OneDrive\\Desktop\\Ai Mock Interview\\.agents\\tasks\\2025-01-08-review.md"
+}

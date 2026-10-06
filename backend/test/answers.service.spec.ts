@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AnswersService } from '../src/interviews/answers.service';
 import { QuestionsService } from '../src/interviews/questions.service';
+import { EvaluationsService } from '../src/interviews/evaluations.service';
+import { RecommendationsService } from '../src/interviews/recommendations.service';
 import { InterviewAnswer } from '../src/database/entities/interview-answer.entity';
 import { Interview, InterviewStatus } from '../src/database/entities/interview.entity';
 import { InterviewQuestion } from '../src/database/entities/interview-question.entity';
@@ -13,6 +15,8 @@ describe('AnswersService', () => {
   let mockInterviewRepo: any;
   let mockQuestionRepo: any;
   let mockQuestionsService: any;
+  let mockEvaluationsService: any;
+  let mockRecommendationsService: any;
 
   beforeEach(async () => {
     mockAnswerRepo = {
@@ -35,6 +39,12 @@ describe('AnswersService', () => {
         questionCategory: 'Performance',
       }),
     };
+    mockEvaluationsService = {
+      evaluateAnswer: jest.fn().mockResolvedValue({ id: 'eval-1', score: 85 }),
+    };
+    mockRecommendationsService = {
+      generateRecommendations: jest.fn().mockResolvedValue({ id: 'rec-1' }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -54,6 +64,14 @@ describe('AnswersService', () => {
         {
           provide: QuestionsService,
           useValue: mockQuestionsService,
+        },
+        {
+          provide: EvaluationsService,
+          useValue: mockEvaluationsService,
+        },
+        {
+          provide: RecommendationsService,
+          useValue: mockRecommendationsService,
         },
       ],
     }).compile();

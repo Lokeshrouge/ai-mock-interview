@@ -1,0 +1,48 @@
+{
+  "id": "FEAT-007",
+  "type": "feat",
+  "description": "Frontend Interview History Page - Paginated list of all user's interviews with filtering by status and navigation to reports or active interview rooms. Shows interview metadata in table/card format with search and sort capabilities.",
+  "status": "pending",
+  "steps": [
+    "Create frontend/src/app/history/page.tsx: 'use client' component",
+    "Import: useState, useEffect, useRouter from next/navigation, api, Navbar, icons from lucide-react (Calendar, Briefcase, Target, TrendingUp, Clock, ChevronLeft, ChevronRight, Filter)",
+    "State: interviews (array), page (number, default 1), limit (number, default 10), totalPages (number), statusFilter (string, default null), loading (boolean), error (string)",
+    "useEffect on [page, statusFilter]: build query params, GET /interviews?page={page}&limit={limit}&status={statusFilter}, destructure { interviews, total, page, totalPages } from response, setInterviews and setTotalPages, handle errors",
+    "Display options: table view for desktop (responsive), card grid for mobile",
+    "Table columns: Date (format createdAt as 'MMM DD, YYYY'), Job Role (jobRole.title), Type (badge with color: HR=purple, TECHNICAL=blue, PROJECT=green), Difficulty (badge: EASY=green, MEDIUM=yellow, HARD=red), Status (badge: CREATED=gray, IN_PROGRESS=blue, COMPLETED=green), Score (show overallScore/100 if COMPLETED, else '-')",
+    "Row interaction: onClick handler checks status, if COMPLETED navigate to /interview/{id}/report, if IN_PROGRESS navigate to /interview/{id}, if CREATED show toast 'Start this interview first' and don't navigate",
+    "Filter controls: dropdown or radio group above table with options: All Interviews, Created, In Progress, Completed. onChange updates statusFilter and resets page to 1",
+    "Pagination controls: Previous button (disabled if page===1), page indicator 'Page {page} of {totalPages}', Next button (disabled if page===totalPages). Buttons trigger setPage",
+    "Empty state: if interviews.length===0 and !loading show card with icon, heading 'No Interviews Yet', description 'Start your first AI mock interview to see it here.', button 'Start Interview' linking to /interview/setup",
+    "Loading state: show skeleton table/cards with shimmer effect",
+    "Error state: show error alert with retry button",
+    "Statistics summary at top: total interviews count, average score (calculate from completed interviews), completion rate (completed / total * 100%)",
+    "Styling: match dashboard aesthetic, responsive design, hover effects on rows, smooth transitions",
+    "Layout: Navbar + main with max-w-7xl container"
+  ],
+  "acceptance_criteria": [
+    "History page fetches and displays paginated interviews",
+    "Table/cards show all relevant interview metadata",
+    "Status filter updates the list and resets to page 1",
+    "Pagination controls navigate between pages correctly",
+    "Clicking COMPLETED interview navigates to report page",
+    "Clicking IN_PROGRESS interview navigates to interview room",
+    "Empty state displays when user has no interviews",
+    "Loading and error states handled gracefully",
+    "Statistics summary calculates correctly from interview data",
+    "Page is fully responsive (table on desktop, cards on mobile)"
+  ],
+  "verification": [
+    "cd frontend && npm run dev",
+    "Navigate to http://localhost:3000/history",
+    "Verify interviews list displays with correct data",
+    "Test status filter: select 'Completed', verify only completed interviews show",
+    "Test pagination: if > 10 interviews, verify Next/Previous buttons work",
+    "Click on a completed interview row, verify navigation to report",
+    "Create new interview and leave it in CREATED status, verify clicking shows toast and doesn't navigate",
+    "Test empty state: filter for status that has no interviews, verify empty state displays",
+    "Test responsive: resize browser to mobile width, verify card layout appears"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

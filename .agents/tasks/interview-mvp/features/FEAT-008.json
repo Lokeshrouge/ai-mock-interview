@@ -1,0 +1,40 @@
+{
+  "id": "FEAT-008",
+  "type": "feat",
+  "description": "Dashboard Navigation Update - Update the Configure Interview button on the dashboard to link to /interview/setup instead of being disabled. Improve UX by showing different states based on whether user has resume uploaded.",
+  "status": "pending",
+  "steps": [
+    "Open frontend/src/app/dashboard/page.tsx",
+    "Locate the 'Mock Interview' card (third card in the grid with PlayCircle icon)",
+    "Find the button currently showing 'Configure Interview (Stage 7)' with disabled prop",
+    "Replace button implementation: if profileData?.hasActiveResume, render Link component wrapping a button styled element with href='/interview/setup', text 'Start Mock Interview', full styling preserved from existing button. Else (no resume), render button (not Link) with disabled=true, show warning icon + text 'Upload Resume First', amber color scheme instead of slate-900",
+    "Update button classes for enabled state: keep existing classes but ensure no disabled opacity, add hover:scale-[1.02] transition for better UX",
+    "Update button classes for disabled state (no resume): 'bg-amber-50 text-amber-700 border border-amber-200 cursor-not-allowed' with AlertCircle icon",
+    "Add onClick handler to disabled button: shows toast/alert 'Please upload a resume first to unlock mock interviews' and optionally navigates to /resumes",
+    "Test both states: with resume (button enabled and links to setup), without resume (button disabled and shows warning)",
+    "Ensure ArrowRight icon stays on enabled button, AlertCircle icon on disabled button",
+    "Verify styling consistency with other dashboard cards"
+  ],
+  "acceptance_criteria": [
+    "Button changes based on profileData?.hasActiveResume state",
+    "When resume exists: button links to /interview/setup with text 'Start Mock Interview'",
+    "When no resume: button disabled with warning icon and text 'Upload Resume First'",
+    "Button styling matches dashboard aesthetic",
+    "Clicking enabled button navigates to interview setup page",
+    "Clicking disabled button shows helpful message",
+    "No console errors or navigation issues",
+    "Mobile responsive design maintained"
+  ],
+  "verification": [
+    "cd frontend && npm run dev",
+    "Navigate to http://localhost:3000/dashboard",
+    "Test with resume: verify button is enabled and shows 'Start Mock Interview'",
+    "Click button, verify navigation to /interview/setup",
+    "Test without resume: delete all resumes via /resumes page, return to dashboard",
+    "Verify button shows 'Upload Resume First' with amber styling",
+    "Click disabled button, verify appropriate feedback (toast or alert)",
+    "Test on mobile viewport, verify button remains functional and styled correctly"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

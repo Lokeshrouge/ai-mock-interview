@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   Interview,
   InterviewStatus,
@@ -30,6 +30,7 @@ export class InterviewsService {
     private questionRepository: Repository<InterviewQuestion>,
     private questionsService: QuestionsService,
     private recommendationsService: RecommendationsService,
+    private dataSource: DataSource,
   ) {}
 
   async create(userId: string, dto: CreateInterviewDto) {
@@ -102,6 +103,43 @@ export class InterviewsService {
       interview.status = InterviewStatus.IN_PROGRESS;
       interview.startedAt = new Date();
       await this.interviewRepository.save(interview);
+
+      // Try to generate first question, revert state if it fails
+      try {
+        const firstQuestion = await this.questionsService.generateNextQuestion(interviewId);
+        return {
+          interview: {
+            id: interview.id,
+            status: interview.status,
+            jobRole: interview.jobRole?.title,
+            interviewType: interview.interviewType,
+            difficulty: interview.difficulty,
+            totalQuestions: interview.totalQuestions,
+            answeredQuestions: interview.answeredQuestions,
+            startedAt: interview.startedAt,
+          },
+          currentQuestion: firstQuestion
+            ? {
+                id: firstQuestion.id,
+                questionNumber: firstQuestion.questionNumber,
+                questionText: firstQuestion.questionText,
+                questionCategory: firstQuestion.questionCategory,
+                expectedPoints: firstQuestion.expectedPoints,
+              }
+            : null,
+          progress: {
+            current: 1,
+            total: interview.totalQuestions,
+            percentage: 0,
+          },
+        };
+      } catch (error) {
+        // Revert status to CREATED so user can retry
+        interview.status = InterviewStatus.CREATED;
+        interview.startedAt = null;
+        await this.interviewRepository.save(interview);
+        throw new BadRequestException(`Failed to start interview: ${error.message}`);
+      }
     }
 
     // Ensure first question is generated if no questions exist
