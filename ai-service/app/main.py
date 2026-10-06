@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMouter = None
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+from app.routers import questions, evaluation
 
 app = FastAPI(
     title="AI Mock Interview - AI Service",
@@ -16,6 +16,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(questions.router)
+app.include_router(evaluation.router)
 
 
 @app.get("/health", tags=["Health"])

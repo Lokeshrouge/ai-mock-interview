@@ -4,7 +4,7 @@
   "description": "Next.js frontend for AI-Powered Mock Interview System",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev --turbo -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint"
