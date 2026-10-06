@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Patch,
+  Param,
   Query,
   UseGuards,
   ParseIntPipe,
@@ -10,7 +12,7 @@ import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/entities/user.entity';
+import { UserRole } from '../database/entities/user.entity';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -29,5 +31,15 @@ export class AdminController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.adminService.getAllUsers(page, limit);
+  }
+
+  @Patch('users/:id/toggle-status')
+  async toggleUserStatus(@Param('id') id: string) {
+    return this.adminService.toggleUserStatus(id);
+  }
+
+  @Get('settings')
+  async getSettings() {
+    return this.adminService.getSystemSettings();
   }
 }

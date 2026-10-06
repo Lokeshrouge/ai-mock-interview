@@ -30,7 +30,6 @@ export class InterviewsService {
     private questionRepository: Repository<InterviewQuestion>,
     private questionsService: QuestionsService,
     private recommendationsService: RecommendationsService,
-    private dataSource: DataSource,
   ) {}
 
   async create(userId: string, dto: CreateInterviewDto) {

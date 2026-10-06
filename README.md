@@ -76,10 +76,12 @@ ai-mock-interview/
   - `answers.service.spec.ts`: Progression logic and interview completion transitions.
   - `evaluations.service.spec.ts`: Multi-dimensional rubric calculation and offline fallback.
   - `recommendations.service.spec.ts`: Aggregated scoring and recommendation synthesis.
+  - `admin.service.spec.ts`: Telemetry stats, candidate pagination, status toggle, system settings.
+  - **Status: 33/33 passing across 7 suites (100% OK)**.
 
 ---
 
-## 🏃 Quick Start (Local Development)
+## 🏃 Quick Start & Execution
 
 ### 1. Environment Configuration
 ```bash
@@ -91,7 +93,30 @@ cp .env.example .env
 docker compose up -d
 ```
 
-### 3. Service Endpoints
+### 3. Local Development Mode (Without Docker)
+- **AI Microservice:**
+  ```bash
+  cd ai-service
+  uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+  ```
+- **NestJS Backend:**
+  ```bash
+  cd backend
+  npm run start:dev
+  ```
+- **Next.js Frontend:**
+  ```bash
+  cd frontend
+  npm run dev
+  ```
+
+### 4. Verification & Testing Commands
+- **AI Service Tests:** `py ai-service/tests/test_resume_parser_unittest.py; py ai-service/tests/test_question_generator_unittest.py; py ai-service/tests/test_evaluator_unittest.py`
+- **Backend Tests:** `cd backend && npx jest --runInBand`
+- **Backend Build:** `cd backend && npm run build`
+- **Frontend Build:** `cd frontend && npm run build`
+
+### 5. Service Endpoints
 - **Frontend Portal**: http://localhost:3000
 - **Backend REST API**: http://localhost:3001
 - **AI Microservice**: http://localhost:8000 (Interactive docs at `/docs`)

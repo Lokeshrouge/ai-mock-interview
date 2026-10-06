@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
+import { User } from '../database/entities/user.entity';
 import { Interview, InterviewStatus } from '../database/entities/interview.entity';
 import { Resume } from '../database/entities/resume.entity';
 
@@ -66,7 +66,7 @@ export class AdminService {
   async getAllUsers(page = 1, limit = 20) {
     const [users, total] = await this.userRepository.findAndCount({
       relations: ['profile'],
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -76,14 +76,43 @@ export class AdminService {
         id: u.id,
         email: u.email,
         role: u.role,
-        isActive: u.is_active,
-        firstName: u.profile?.first_name || '',
-        lastName: u.profile?.last_name || '',
-        createdAt: u.created_at,
+        isActive: u.isActive,
+        firstName: u.profile?.firstName || '',
+        lastName: u.profile?.lastName || '',
+        createdAt: u.createdAt,
       })),
       total,
       page,
       limit,
+    };
+  }
+
+  async toggleUserStatus(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.isActive = !user.isActive;
+    await this.userRepository.save(user);
+    return { id: user.id, isActive: user.isActive };
+  }
+
+  async getSystemSettings() {
+    return {
+      appName: 'AI Mock Interview & Evaluation System',
+      version: '1.0.0-MVP',
+      aiProvider: process.env.AI_PROVIDER || 'openai',
+      aiServiceUrl: process.env.AI_SERVICE_URL || 'http://localhost:8000',
+      maxResumeSizeBytes: 5 * 1024 * 1024,
+      allowedResumeExtensions: ['.pdf', '.docx'],
+      minAnswerLengthChars: 50,
+      questionLimits: { min: 5, max: 20, default: 10 },
+      rubricWeights: {
+        technicalAccuracy: 0.35,
+        completeness: 0.30,
+        clarity: 0.20,
+        relevance: 0.15,
+      },
     };
   }
 }
