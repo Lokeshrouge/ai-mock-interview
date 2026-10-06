@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { JobRole } from '../database/entities/job-role.entity';
@@ -6,11 +6,15 @@ import { CreateJobRoleDto } from './dto/create-job-role.dto';
 import { UpdateJobRoleDto } from './dto/update-job-role.dto';
 
 @Injectable()
-export class JobRolesService {
+export class JobRolesService implements OnModuleInit {
   constructor(
     @InjectRepository(JobRole)
     private jobRoleRepository: Repository<JobRole>,
   ) {}
+
+  async onModuleInit() {
+    await this.seedDefaultRoles();
+  }
 
   async findAll(category?: string, search?: string) {
     const query = this.jobRoleRepository.createQueryBuilder('jobRole')

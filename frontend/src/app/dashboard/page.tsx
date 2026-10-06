@@ -158,13 +158,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <button
-              disabled={!profileData?.hasActiveResume}
-              className="mt-6 w-full py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center space-x-2 disabled:opacity-50"
+            <Link
+              href="/interview/setup"
+              className="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-indigo-600/20"
             >
-              <span>Configure Interview (Stage 7)</span>
+              <span>Start Mock Interview</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
         </div>
       </main>

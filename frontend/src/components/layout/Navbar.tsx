@@ -1,93 +1,85 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, FileText, LayoutDashboard, LogOut, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
-export default function Navbar() {
-  const pathname = usePathname();
+export function Navbar() {
   const { user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/profile', label: 'Profile', icon: User },
-    { href: '/resumes', label: 'Resume', icon: FileText },
-  ];
+  const isActive = (path: string) => pathname === path;
+
+  if (!user) {
+    return (
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="text-xl font-bold text-blue-600">
+              AI Mock Interview
+            </Link>
+            <div className="flex gap-4">
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Login</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="primary" size="sm">Get Started</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
-              AI
-            </div>
-            <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
-              MockInterview<span className="text-indigo-500">.ai</span>
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{link.label}</span>
+    <nav className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-8">
+            <Link href="/dashboard" className="text-xl font-bold text-blue-600">
+              AI Mock Interview
+            </Link>
+            <div className="hidden md:flex gap-4">
+              <Link href="/dashboard">
+                <span className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  Dashboard
+                </span>
+              </Link>
+              <Link href="/profile">
+                <span className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/profile') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  Profile
+                </span>
+              </Link>
+              <Link href="/resumes">
+                <span className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/resumes') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  Resumes
+                </span>
+              </Link>
+              <Link href="/history">
+                <span className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/history') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  History
+                </span>
+              </Link>
+              {user.role === 'ADMIN' && (
+                <Link href="/admin/dashboard">
+                  <span className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/admin/dashboard') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    Admin
+                  </span>
                 </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <div className="flex items-center space-x-3">
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-semibold text-slate-900 dark:text-white">
-                  {user.email}
-                </span>
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 capitalize">
-                  {user.role?.toLowerCase() || 'Student'}
-                </span>
-              </div>
-              <button
-                onClick={logout}
-                title="Log out"
-                className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              )}
             </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-indigo-600 dark:text-slate-300"
-              >
-                Log In
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-              >
-                Register
-              </Link>
-            </div>
-          )}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">{user.email}</span>
+            <Button variant="outline" size="sm" onClick={logout}>
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

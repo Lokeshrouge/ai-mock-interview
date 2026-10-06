@@ -1,7 +1,7 @@
 # AI-Powered Mock Interview System
 ## B.Sc. Computer Science Final Year Project
 
-**Status**: Stages 1–5 Complete ✅ | Stage 6 (Interview Configuration) Next 🚀
+**Status**: Stages 1–7 Complete ✅ | Stage 8 (Answer Evaluation & Scoring) Next 🚀
 
 ## Quick Links
 - [Phase 1 Summary](docs/22-PHASE1-SUMMARY.md)

@@ -1,0 +1,7 @@
+{
+  "task_id": "interview-mvp",
+  "task_description": "Complete Interview Engine MVP - Backend Services, AI Integration, Frontend Pages for full interview lifecycle",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005", "FEAT-006", "FEAT-007", "FEAT-008"],
+  "blocked_reason": null
+}

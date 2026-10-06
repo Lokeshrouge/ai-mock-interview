@@ -1,0 +1,50 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Frontend Interview Room Page and Components - The core interview experience displaying questions, capturing answers, showing evaluations, and tracking progress. Includes 6 reusable components (QuestionCard, AnswerInput, EvaluationDisplay, ProgressBar, ScoreCard, RecommendationCard). Handles the full interview loop until completion.",
+  "status": "pending",
+  "steps": [
+    "Create frontend/src/components/interview/QuestionCard.tsx: functional component with props { questionNumber: number, category: string, questionText: string }, display badge for category (rounded bg-indigo-100 text-indigo-800), heading 'Question {questionNumber}', questionText in large readable font, wrapped in white card with border",
+    "Create frontend/src/components/interview/AnswerInput.tsx: props { value: string, onChange: (val: string) => void, onSubmit: () => void, loading: boolean, disabled: boolean }, textarea with rows=8, live character count display (min 50, max 5000), validation styling (red border if < 50 or > 5000), submit button disabled if invalid or loading, show spinner in button when loading",
+    "Create frontend/src/components/interview/ScoreCard.tsx: props { score: number }, display score as large centered number, background color based on score (green if >= 70, yellow if >= 50, red if < 50), text like '{score}/100'",
+    "Create frontend/src/components/interview/EvaluationDisplay.tsx: props { score: number, feedback: string, strengths: string[], weaknesses: string[] }, layout: ScoreCard at top, feedback section (scrollable if long), strengths list with CheckCircle2 icons in green, weaknesses list with AlertCircle icons in amber, white card with sections separated by borders",
+    "Create frontend/src/components/interview/ProgressBar.tsx: props { current: number, total: number }, display progress bar (filled portion indigo gradient), text '{current} of {total} answered' and '{Math.round(current/total*100)}%', animated transition on progress change",
+    "Create frontend/src/components/interview/RecommendationCard.tsx: props { strengths: string[], weaknesses: string[], topicsToImprove: string[], overallFeedback: string }, 4-section card: strengths (green theme with check icons), weaknesses (amber theme with alert icons), topics to improve (indigo badges), overall feedback (bordered text block)",
+    "Create frontend/src/app/interview/[id]/page.tsx: 'use client', import useParams, useState, useEffect, api, Navbar, all interview components",
+    "State: questions (array), currentQuestionIndex (number, default 0), answerText (string), answers (Map<questionId, answer>), evaluations (Map<questionId, evaluation>), showEvaluation (boolean), currentEvaluation (object), loading (boolean), submitting (boolean), interview (object), timeTakenSeconds (number)",
+    "useEffect on mount: GET /interviews/:id/questions to load questions array, GET /interviews/:id to load interview metadata, set currentQuestionIndex to first unanswered question index",
+    "Display: ProgressBar (interview.answeredQuestions, interview.totalQuestions), QuestionCard (questions[currentQuestionIndex]), AnswerInput if !showEvaluation, EvaluationDisplay if showEvaluation",
+    "AnswerInput onChange: setAnswerText, track time using Date.now() - questionStartTime for timeTakenSeconds",
+    "AnswerInput onSubmit: setSubmitting(true), POST /interviews/:id/answers with { questionId: questions[currentQuestionIndex].id, answerText, timeTakenSeconds }, response contains { answer, evaluation, nextQuestion, isCompleted }, setCurrentEvaluation(evaluation), setShowEvaluation(true), store answer and evaluation in maps, setSubmitting(false)",
+    "After evaluation shown: display 'Next Question' button (or 'Complete Interview' if isCompleted), onClick: if isCompleted POST /interviews/:id/complete then router.push(/interview/${id}/report), else setCurrentQuestionIndex++, setShowEvaluation(false), setAnswerText(''), reset timer",
+    "Loading states: show skeleton while loading questions, disable answer input during submission, show spinner on submit button",
+    "Error handling: try-catch all API calls, display error alerts, allow retry without losing state",
+    "Layout: Navbar + main container with max-w-5xl, white cards with shadows"
+  ],
+  "acceptance_criteria": [
+    "All 6 interview components created and properly typed",
+    "Interview room page loads questions on mount",
+    "Current question displays with category and number",
+    "Answer input enforces 50-5000 character limit with live validation",
+    "Submitting answer shows loading state and disables input",
+    "Evaluation displays immediately after submission with score, feedback, strengths, weaknesses",
+    "Progress bar updates after each answer",
+    "Next Question button advances to next unanswered question",
+    "Complete Interview button triggers completion and redirects to report",
+    "Page handles errors gracefully without losing interview state"
+  ],
+  "verification": [
+    "cd frontend && npm run dev",
+    "Complete interview setup to reach interview room",
+    "Verify question 1 displays correctly",
+    "Type 100 characters in answer, verify character count updates",
+    "Try submitting with < 50 chars, verify button disabled",
+    "Submit valid answer, verify loading spinner appears",
+    "Verify evaluation displays with score and feedback",
+    "Click 'Next Question', verify question 2 loads",
+    "Answer all questions, verify 'Complete Interview' button on last question",
+    "Click 'Complete Interview', verify redirect to /interview/[id]/report"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

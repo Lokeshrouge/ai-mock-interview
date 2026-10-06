@@ -1,0 +1,45 @@
+{
+  "id": "FEAT-006",
+  "type": "feat",
+  "description": "Frontend Interview Report Page - Display complete interview summary with overall score, interview metadata, per-question breakdown showing question/answer/evaluation, and recommendations section. Provides navigation to start new interview or view history.",
+  "status": "pending",
+  "steps": [
+    "Create frontend/src/app/interview/[id]/report/page.tsx: 'use client' component",
+    "Import: useParams, useState, useEffect, api, Navbar, icons from lucide-react (Trophy, Calendar, Clock, Briefcase, Target), RecommendationCard from components",
+    "State: report (object with interview, questions array, recommendations), loading (boolean), error (string)",
+    "useEffect on mount: GET /interviews/:id/report, setReport(response.data.data), handle errors with setError, setLoading(false)",
+    "Report structure validation: verify report.interview.status === 'COMPLETED', if not show 'Interview not completed yet' message with link back to interview room",
+    "Display sections: 1) Hero section with overall score (large, color-coded using ScoreCard logic), interview metadata (job role, type, difficulty, date, duration calculated from startedAt to completedAt), 2) Statistics summary cards (total questions, average score, time per question), 3) Question-by-question breakdown accordion/list, 4) Recommendations section using RecommendationCard component",
+    "Question breakdown item: each question shows questionNumber, questionCategory badge, questionText (expandable if long), 'Your Answer' section with answerText (expandable with 'Show more' if > 200 chars), evaluation with score badge, feedback text, strengths list (green checkmarks), weaknesses list (amber alerts)",
+    "Recommendations section: render RecommendationCard with report.recommendations[0] data (strengths, weaknesses, topicsToImprove, overallFeedback)",
+    "Action buttons at bottom: 'Start New Interview' button (primary, indigo) links to /interview/setup, 'Interview History' button (secondary, outline) links to /history, 'Download Report' button (future enhancement, show as disabled with tooltip 'Coming soon')",
+    "Loading state: show full-page skeleton with shimmer effect while report loads",
+    "Error state: if GET fails show error card with retry button",
+    "Styling: gradient hero section for score, white cards for each section, responsive grid for statistics, smooth scrolling between sections, print-friendly layout (optional @media print styles)",
+    "Layout: Navbar + main with max-w-6xl container"
+  ],
+  "acceptance_criteria": [
+    "Report page loads full interview data including questions, answers, evaluations, recommendations",
+    "Overall score displayed prominently with correct color coding",
+    "Interview metadata shows all relevant information (role, type, difficulty, dates)",
+    "Each question displays with answer and evaluation details",
+    "Recommendations section shows all 4 data types (strengths, weaknesses, topics, feedback)",
+    "Action buttons navigate to correct routes",
+    "Page only accessible for COMPLETED interviews (shows error for IN_PROGRESS)",
+    "Loading and error states handled gracefully",
+    "Page is responsive and visually consistent with dashboard"
+  ],
+  "verification": [
+    "cd frontend && npm run dev",
+    "Complete a full interview (answer all questions, trigger completion)",
+    "Verify automatic redirect to /interview/[id]/report",
+    "Verify overall score matches calculated average of evaluation scores",
+    "Verify all questions appear in breakdown with answers and evaluations",
+    "Verify recommendations section displays (check both successful AI response and fallback case)",
+    "Click 'Start New Interview', verify navigation to /interview/setup",
+    "Click 'Interview History', verify navigation to /history",
+    "Test direct URL access to report of IN_PROGRESS interview, verify error message displays"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

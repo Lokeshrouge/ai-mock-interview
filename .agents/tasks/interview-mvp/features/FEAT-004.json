@@ -1,0 +1,43 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Frontend Interview Setup Page - Create the interview configuration page where students select job role, interview type, difficulty, resume, and question count, then trigger interview creation and AI question generation. Includes loading states during async operations.",
+  "status": "pending",
+  "steps": [
+    "Edit frontend/package.json: add 'lucide-react': '^0.309.0' to dependencies",
+    "Run: cd frontend && npm install",
+    "Create frontend/src/app/interview/setup/page.tsx as a 'use client' component",
+    "Import: useState, useEffect from react, useRouter from next/navigation, api from @/lib/api, Navbar from @/components/layout/Navbar, icons from lucide-react (Briefcase, FileText, Zap, Play)",
+    "State: jobRoles (array), resumes (array), loading (boolean), submitting (boolean), error (string), formData { jobRoleId, interviewType, difficulty, resumeId, questionCount }",
+    "useEffect on mount: fetch GET /job-roles and set jobRoles, fetch GET /resumes and filter for isActive=true and set resumes, handle errors with setError",
+    "Form fields: jobRoleId select (map jobRoles to options), interviewType radio buttons (HR/TECHNICAL/PROJECT with icons and descriptions), difficulty radio buttons (EASY/MEDIUM/HARD with color-coded badges), resumeId select (map resumes, show fileName, mark optional), questionCount number input (min=5, max=15, default=10, step=1)",
+    "Validation: jobRoleId required (disable submit if empty), show warning if resumeId not selected: 'Interviews work best with a resume. Upload one in your profile.'",
+    "onSubmit handler: setSubmitting(true), POST /interviews with formData, on success immediately POST /interviews/:id/start, show loading text 'Generating AI questions...', on start success router.push(/interview/${id}), on error display error.response.data.message, setSubmitting(false)",
+    "Loading states: show skeleton loaders while fetching job roles/resumes, disable entire form while submitting, show spinner on submit button",
+    "Styling: match dashboard page aesthetic (gradient headers, white cards with rounded borders, indigo accent colors, responsive grid), use Tailwind classes",
+    "Layout: wrap in <Navbar /> + main with max-w-4xl centered container"
+  ],
+  "acceptance_criteria": [
+    "lucide-react installed and imports work",
+    "Setup page renders with all form fields",
+    "Job roles and resumes load from API on mount",
+    "Form validation prevents submission without required fields",
+    "Submitting shows loading state with 'Generating AI questions...' message",
+    "Successful submission redirects to /interview/[id]",
+    "Error messages display clearly without crashing the page",
+    "Page matches dashboard styling and is fully responsive"
+  ],
+  "verification": [
+    "cd frontend && npm install — completes without errors",
+    "cd frontend && npm run dev — starts on port 3000",
+    "Navigate to http://localhost:3000/interview/setup",
+    "Verify job roles dropdown populates with 10 roles",
+    "Verify resumes dropdown shows active resumes (or empty if none)",
+    "Select all fields and click 'Start Interview'",
+    "Verify loading spinner appears with 'Generating AI questions...' text",
+    "Verify redirect to /interview/[uuid] after success",
+    "Test error case: stop backend, submit form, verify error message displays"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

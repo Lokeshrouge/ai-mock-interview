@@ -1,0 +1,30 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "AI Service Recommendations Endpoint - Add missing POST /recommendations/generate endpoint to complete the evaluation pipeline. Aggregates interview evaluations to produce overall strengths, weaknesses, topics to improve, and feedback. Currently a stub implementation ready for LLM integration later.",
+  "status": "pending",
+  "steps": [
+    "Edit ai-service/app/models/schemas.py: add EvaluationSummary(BaseModel) with fields question: str, answer: str, score: int, strengths: List[str], weaknesses: List[str], category: str",
+    "Add RecommendationsRequest(BaseModel) with field evaluations: List[EvaluationSummary]",
+    "Add RecommendationsResponse(BaseModel) with fields overall_strengths: List[str], overall_weaknesses: List[str], topics_to_improve: List[str], overall_feedback: str",
+    "Create ai-service/app/routers/recommendations.py: import FastAPI APIRouter and schemas, create router = APIRouter(prefix='/recommendations', tags=['Recommendations'])",
+    "Implement POST /generate endpoint: accept RecommendationsRequest, aggregate unique strengths by flattening all evaluation.strengths and deduping, aggregate unique weaknesses similarly",
+    "Compute avg score per category: group evaluations by category, calculate mean score, filter categories where avg < 60 as topics_to_improve",
+    "Generate overall_feedback string: f'Based on {len(request.evaluations)} questions, your overall performance was {overall_avg:.1f}%. ' + (f'Focus on improving: {', '.join(topics_to_improve)}.' if topics_to_improve else 'Great job across all areas!')",
+    "Return RecommendationsResponse with aggregated data",
+    "Edit ai-service/app/main.py: import recommendations router, add app.include_router(recommendations.router) after existing routers"
+  ],
+  "acceptance_criteria": [
+    "POST /recommendations/generate endpoint responds with 200 and RecommendationsResponse schema",
+    "Aggregation logic deduplicates strengths and weaknesses across all evaluations",
+    "topics_to_improve identifies categories with average score below 60",
+    "overall_feedback is a coherent summary string with score and improvement areas",
+    "Router registered in main.py and appears in /docs"
+  ],
+  "verification": [
+    "cd ai-service && uvicorn app.main:app --reload",
+    "curl -X POST http://localhost:8000/recommendations/generate -H 'Content-Type: application/json' -d '{\"evaluations\":[{\"question\":\"Test\",\"answer\":\"Test\",\"score\":75,\"strengths\":[\"Good\"],\"weaknesses\":[\"Bad\"],\"category\":\"Technical\"},{\"question\":\"Test2\",\"answer\":\"Test2\",\"score\":45,\"strengths\":[\"Clear\"],\"weaknesses\":[\"Incomplete\"],\"category\":\"Behavioral\"}]}' — returns 200 with overall_strengths, overall_weaknesses, topics_to_improve=['Behavioral'], overall_feedback string"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

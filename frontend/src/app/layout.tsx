@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Navbar } from '@/components/layout/Navbar';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AI Mock Interview & Evaluation Platform',
-  description: 'AI-Powered Mock Interview Platform with adaptive questioning and real-time performance evaluation.',
+  title: 'AI Mock Interview System',
+  description: 'Practice interviews with AI-powered feedback',
 };
 
 export default function RootLayout({
@@ -14,9 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased selection:bg-indigo-500 selection:text-white bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen">
+      <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <div className="min-h-screen bg-gray-50">
+            <Navbar />
+            <main>{children}</main>
+          </div>
         </AuthProvider>
       </body>
     </html>

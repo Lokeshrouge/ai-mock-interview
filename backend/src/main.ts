@@ -4,10 +4,16 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { JobRolesService } from './job-roles/job-roles.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // Seed default job roles on startup
+  const jobRolesService = app.get(JobRolesService);
+  await jobRolesService.seedDefaultRoles();
+  logger.log('✅ Default job roles seeded');
 
   // Global prefix
   app.setGlobalPrefix('api/v1');

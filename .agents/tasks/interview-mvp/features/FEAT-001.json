@@ -1,0 +1,42 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Backend Core Services - Implement 5 missing service files (InterviewsService, QuestionsService, AnswersService, EvaluationsService, RecommendationsService) that power the interview lifecycle. These services orchestrate interview creation, AI question generation, answer submission with evaluation, and final recommendations. All entities and DTOs already exist; this implements the business logic layer.",
+  "status": "pending",
+  "steps": [
+    "Create backend/src/interviews/interviews.service.ts with @Injectable decorator, inject Repository<Interview>, Repository<JobRole>, Repository<Resume>, Repository<StudentProfile> from profiles/entities/profile.entity, QuestionsService, RecommendationsService",
+    "Implement create(userId, dto): validate jobRoleId exists via jobRoleRepository.findOne, if dto.resumeId validate resume exists and userId matches (ForbiddenException if not), create Interview with status=CREATED, totalQuestions=dto.questionCount||10, answeredQuestions=0, save and return",
+    "Implement startInterview(userId, id): load interview with relations ['jobRole', 'resume', 'user.profile'], ownership check userId===interview.userId, status check ===CREATED, update status=IN_PROGRESS and startedAt=new Date(), load profile via profileRepository.findOne({ where: { user_id: userId } }), call questionsService.generateQuestions(interview, interview.resume, profile, interview.jobRole), save interview, return { interview, firstQuestion: questions[0] }. On AI error keep status=CREATED and rethrow",
+    "Implement completeInterview(userId, id): load with relations ['answers', 'answers.evaluation'], ownership check, status check ===IN_PROGRESS, calculate overallScore as average of all evaluation.score, update status=COMPLETED and completedAt and overallScore, save, call recommendationsService.generateRecommendations(interview), return interview with recommendations",
+    "Implement findOne(userId, id): load with ['jobRole', 'questions', 'questions.answer', 'questions.answer.evaluation'], ownership check, return",
+    "Implement getInterviewQuestions(userId, id): load with ['questions', 'questions.answer'], ownership check, map to {...question, isAnswered: !!question.answer}, return",
+    "Implement getInterviewReport(userId, id): load with ['jobRole', 'questions', 'questions.answer', 'questions.answer.evaluation', 'recommendations'], ownership check, verify status===COMPLETED else BadRequestException, return",
+    "Implement findAll(userId, page, limit, status?): createQueryBuilder with where userId, if status provided add andWhere, orderBy createdAt DESC, leftJoinAndSelect jobRole, paginate with skip=(page-1)*limit and take=limit, return { interviews, total, page, totalPages }",
+    "Create backend/src/interviews/questions.service.ts with @Injectable, inject Repository<InterviewQuestion>, HttpService from @nestjs/axios, ConfigService",
+    "Implement generateQuestions(interview, resume, profile, jobRole): build payload { job_role: jobRole.title, interview_type: interview.interviewType.toLowerCase(), difficulty: interview.difficulty.toLowerCase(), question_count: interview.totalQuestions, resume_text: resume?.extractedText || null, skills: [...(profile?.technical_skills || []), ...(profile?.programming_languages || [])] }. POST to ${AI_SERVICE_URL}/questions/generate using httpService.post().pipe(map(res => res.data), catchError). Map response.questions to InterviewQuestion entities with questionNumber=index+1, questionText=item.question, questionCategory=item.topic, expectedPoints=item.expected_key_points, interviewId=interview.id. Bulk save and return. Wrap in try-catch, throw BadRequestException on failure",
+    "Create backend/src/interviews/answers.service.ts with @Injectable, inject Repository<InterviewAnswer>, Repository<Interview>, Repository<InterviewQuestion>, EvaluationsService",
+    "Implement submitAnswer(userId, interviewId, dto): load interview with ownership check, status check ===IN_PROGRESS, load question where id=dto.questionId and interviewId=interviewId (NotFoundException if not found), check for existing answer where questionId=dto.questionId (ConflictException if exists), create and save InterviewAnswer { interviewId, questionId: dto.questionId, answerText: dto.answerText, timeTakenSeconds: dto.timeTakenSeconds }, call evaluationsService.evaluateAnswer(answer, question, interview), increment interview.answeredQuestions and save, find next unanswered question using createQueryBuilder leftJoin answer where answer.id IS NULL orderBy questionNumber ASC getOne, return { answer, evaluation, nextQuestion: nextQuestion||null, isCompleted: interview.answeredQuestions >= interview.totalQuestions }",
+    "Create backend/src/interviews/evaluations.service.ts with @Injectable, inject Repository<Evaluation>, HttpService, ConfigService",
+    "Implement evaluateAnswer(answer, question, interview): build payload { question: question.questionText, question_type: interview.interviewType.toLowerCase(), difficulty: interview.difficulty.toLowerCase(), student_answer: answer.answerText, expected_key_points: question.expectedPoints || [] }. POST to ${AI_SERVICE_URL}/evaluation/evaluate with retry(3). Map response: score=overall_score, feedback=detailed_feedback, strengths=strengths, weaknesses=areas_for_improvement, relevanceScore=breakdown.relevance/100, accuracyScore=breakdown.technical_accuracy/100, completenessScore=breakdown.completeness/100, clarityScore=breakdown.clarity/100. Create and save Evaluation { answerId: answer.id, ...mapped }. On all retries failed save fallback { answerId: answer.id, score: 50, feedback: 'Evaluation temporarily unavailable. Please review manually.', strengths: [], weaknesses: [], relevanceScore: 0.5, accuracyScore: 0.5, completenessScore: 0.5, clarityScore: 0.5 }. Return saved evaluation",
+    "Create backend/src/interviews/recommendations.service.ts with @Injectable, inject Repository<Recommendation>, Repository<InterviewAnswer>, HttpService, ConfigService",
+    "Implement generateRecommendations(interview): load answers where interviewId=interview.id with relations ['evaluation', 'question'], build payload { evaluations: answers.map(a => ({ question: a.question.questionText, answer: a.answerText, score: a.evaluation.score, strengths: a.evaluation.strengths, weaknesses: a.evaluation.weaknesses, category: a.question.questionCategory })) }. POST to ${AI_SERVICE_URL}/recommendations/generate. On success map to Recommendation { interviewId: interview.id, strengths: response.overall_strengths, weaknesses: response.overall_weaknesses, topicsToImprove: response.topics_to_improve, overallFeedback: response.overall_feedback }. On failure generate basic: collect unique strengths/weaknesses from evaluations, topicsToImprove=categories where avg score < 60, overallFeedback='Based on {N} questions, average {avgScore}%. Focus on: {topicsToImprove.join}'. Save and return recommendation"
+  ],
+  "acceptance_criteria": [
+    "All 5 service files created with @Injectable decorators and proper constructor injection",
+    "InterviewsService implements all 7 methods with ownership checks and status validation",
+    "QuestionsService calls AI service at /questions/generate and maps response to entities",
+    "AnswersService implements submitAnswer with duplicate detection and next question logic",
+    "EvaluationsService implements evaluateAnswer with 3 retries and fallback on failure",
+    "RecommendationsService calls AI service and has fallback aggregation logic",
+    "StudentProfile accessed via snake_case properties (profile.technical_skills, profile.programming_languages)",
+    "All AI service calls use HttpService from @nestjs/axios with proper error handling",
+    "Services throw appropriate exceptions (NotFoundException, ForbiddenException, BadRequestException, ConflictException)"
+  ],
+  "verification": [
+    "cd backend && npm run build — compiles without TypeScript errors",
+    "cd backend && npm run start:dev — server starts and logs 'Nest application successfully started'",
+    "Check logs for any module initialization errors related to interviews module"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

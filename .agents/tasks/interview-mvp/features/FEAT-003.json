@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-003",
+  "type": "chore",
+  "description": "Backend Module Integration and Seeding - Install @nestjs/axios package, wire up JobRolesModule and InterviewsModule in AppModule, implement OnModuleInit to seed default job roles on startup. This completes the backend module wiring so interview endpoints become functional.",
+  "status": "pending",
+  "steps": [
+    "Edit backend/package.json: add '@nestjs/axios': '^3.0.1' to dependencies object",
+    "Run: cd backend && npm install",
+    "Edit backend/src/app.module.ts: import JobRolesModule from './job-roles/job-roles.module' and InterviewsModule from './interviews/interviews.module'",
+    "Add JobRolesModule and InterviewsModule to the imports array (after ResumesModule)",
+    "Import OnModuleInit from @nestjs/common and JobRolesService from ./job-roles/job-roles.service",
+    "Add 'implements OnModuleInit' to AppModule class declaration",
+    "Add constructor(private jobRolesService: JobRolesService) {}",
+    "Implement async onModuleInit() { await this.jobRolesService.seedDefaultRoles(); } — this runs once on app startup and seeds 10 default job roles if none exist"
+  ],
+  "acceptance_criteria": [
+    "@nestjs/axios installed in node_modules and listed in package.json dependencies",
+    "JobRolesModule and InterviewsModule imported and registered in AppModule",
+    "AppModule implements OnModuleInit lifecycle hook",
+    "seedDefaultRoles() called during application initialization",
+    "Server starts without module resolution errors",
+    "GET /api/v1/job-roles returns 10 seeded roles after first startup"
+  ],
+  "verification": [
+    "cd backend && npm install — completes without errors",
+    "cd backend && npm run start:dev — server starts and logs initialization",
+    "curl http://localhost:3001/api/v1/job-roles — returns array of 10 job roles (Software Developer, Data Analyst, Frontend Developer, Backend Developer, Full Stack Developer, DevOps Engineer, QA Engineer, Product Manager, Business Analyst, UI/UX Designer)",
+    "Check backend logs for 'Nest application successfully started' without errors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

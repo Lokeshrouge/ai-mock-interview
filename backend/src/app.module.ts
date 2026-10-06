@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { ResumesModule } from './resumes/resumes.module';
+import { JobRolesModule } from './job-roles/job-roles.module';
+import { InterviewsModule } from './interviews/interviews.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -18,6 +20,8 @@ import { AppController } from './app.controller';
     UsersModule,
     ProfilesModule,
     ResumesModule,
+    JobRolesModule,
+    InterviewsModule,
   ],
   controllers: [AppController],
   providers: [],
