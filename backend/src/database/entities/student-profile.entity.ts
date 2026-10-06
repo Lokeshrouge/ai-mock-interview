@@ -6,14 +6,23 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from './user.entity';
+
+export interface EducationDetails {
+  college?: string;
+  degree?: string;
+  department?: string;
+  graduationYear?: number;
+}
 
 @Entity('student_profiles')
 export class StudentProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index('idx_student_profiles_user_id', { unique: true })
   @Column({ name: 'user_id', unique: true })
   userId: string;
 
@@ -26,11 +35,26 @@ export class StudentProfile {
   @Column({ length: 20, nullable: true })
   phone: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  education: any;
+  @Column({ name: 'target_role', length: 100, nullable: true })
+  targetRole: string;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  skills: string[];
+  @Column({ name: 'experience_level', length: 50, nullable: true })
+  experienceLevel: string;
+
+  @Column({ name: 'career_interests', type: 'text', array: true, nullable: true })
+  careerInterests: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  education: EducationDetails;
+
+  @Column({ name: 'technical_skills', type: 'text', array: true, nullable: true })
+  technicalSkills: string[];
+
+  @Column({ name: 'programming_languages', type: 'text', array: true, nullable: true })
+  programmingLanguages: string[];
+
+  @Column({ name: 'tools_technologies', type: 'text', array: true, nullable: true })
+  toolsTechnologies: string[];
 
   @Column({ type: 'text', nullable: true })
   bio: string;
@@ -50,7 +74,6 @@ export class StudentProfile {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relations
   @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import questions, evaluation
+from app.routers import questions, evaluation, resume
 
 app = FastAPI(
     title="AI Mock Interview - AI Service",
@@ -17,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(resume.router)
 app.include_router(questions.router)
 app.include_router(evaluation.router)
 

@@ -1,21 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
+import { Public } from './auth/decorators/public.decorator';
 
 @Controller()
 export class AppController {
-  @Get('health')
-  healthCheck() {
-    return {
-      status: 'ok',
-      service: 'mock-interview-backend',
-      timestamp: new Date().toISOString(),
-    };
-  }
-
   @Get()
-  root() {
+  @Public()
+  getRoot() {
     return {
-      message: 'AI Mock Interview Backend API is operational',
+      message: 'AI Mock Interview API',
       version: '1.0.0',
+      docs: '/api/v1',
     };
   }
 }

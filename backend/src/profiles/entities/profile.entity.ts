@@ -10,6 +10,13 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
+export interface EducationDetails {
+  college?: string;
+  degree?: string;
+  department?: string;
+  graduationYear?: number;
+}
+
 @Entity('student_profiles')
 export class StudentProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -32,11 +39,26 @@ export class StudentProfile {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  education: Record<string, any> | null;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  target_role: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  experience_level: string | null;
 
   @Column({ type: 'text', array: true, nullable: true })
-  skills: string[] | null;
+  career_interests: string[] | null;
+
+  @Column({ type: 'jsonb', nullable: true })
+  education: EducationDetails | null;
+
+  @Column({ type: 'text', array: true, nullable: true })
+  technical_skills: string[] | null;
+
+  @Column({ type: 'text', array: true, nullable: true })
+  programming_languages: string[] | null;
+
+  @Column({ type: 'text', array: true, nullable: true })
+  tools_technologies: string[] | null;
 
   @Column({ type: 'text', nullable: true })
   bio: string | null;
