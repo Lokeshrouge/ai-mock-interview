@@ -1,0 +1,31 @@
+{
+  "name": "ai-mock-interview",
+  "version": "1.0.0",
+  "description": "AI-Powered Mock Interview & Candidate Performance Evaluation System",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev:all",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:ai": "cd ai-service && uvicorn app.main:app --reload --port 8000",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "mock-interview",
+    "ai",
+    "nextjs",
+    "nestjs",
+    "fastapi",
+    "postgresql"
+  ],
+  "author": "B.Sc. Final Year Project Team",
+  "license": "ISC"
+}
