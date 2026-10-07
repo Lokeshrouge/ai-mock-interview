@@ -41,19 +41,19 @@ export class StudentProfile {
   @Column({ name: 'experience_level', length: 50, nullable: true })
   experienceLevel: string;
 
-  @Column({ name: 'career_interests', type: 'text', array: true, nullable: true })
+  @Column({ name: 'career_interests', type: 'text', nullable: true })
   careerInterests: string[];
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'text', nullable: true })
   education: EducationDetails;
 
-  @Column({ name: 'technical_skills', type: 'text', array: true, nullable: true })
+  @Column({ name: 'technical_skills', type: 'text', nullable: true })
   technicalSkills: string[];
 
-  @Column({ name: 'programming_languages', type: 'text', array: true, nullable: true })
+  @Column({ name: 'programming_languages', type: 'text', nullable: true })
   programmingLanguages: string[];
 
-  @Column({ name: 'tools_technologies', type: 'text', array: true, nullable: true })
+  @Column({ name: 'tools_technologies', type: 'text', nullable: true })
   toolsTechnologies: string[];
 
   @Column({ type: 'text', nullable: true })

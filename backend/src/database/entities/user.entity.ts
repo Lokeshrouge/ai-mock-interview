@@ -28,8 +28,7 @@ export class User {
   passwordHash: string;
 
   @Column({
-    type: 'enum',
-    enum: UserRole,
+    type: 'varchar',
     default: UserRole.STUDENT,
   })
   role: UserRole;
@@ -40,7 +39,7 @@ export class User {
   @Column({ name: 'failed_login_attempts', default: 0 })
   failedLoginAttempts: number;
 
-  @Column({ name: 'locked_until', nullable: true, type: 'timestamp' })
+  @Column({ name: 'locked_until', nullable: true, type: 'datetime' })
   lockedUntil: Date;
 
   @CreateDateColumn({ name: 'created_at' })

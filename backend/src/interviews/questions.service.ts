@@ -71,7 +71,7 @@ export class QuestionsService {
 
     // Retrieve resume context if attached
     let resumeSummary: string | null = null;
-    let candidateSkills: string[] = profile?.technical_skills || [];
+    let candidateSkills: string[] = profile?.technical_skills ? JSON.parse(profile.technical_skills) : [];
 
     if (interview.resumeId) {
       const resume = await this.resumeRepository.findOne({

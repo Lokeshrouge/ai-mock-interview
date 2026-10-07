@@ -8,13 +8,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const isTest = process.env.NODE_ENV === 'test' || !config.get<string>('DATABASE_URL');
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const isTest = process.env.NODE_ENV === 'test';
+        const isSqlite = databaseUrl?.startsWith('sqlite:') || !databaseUrl;
         
-        if (isTest) {
-          // Use SQLite for testing when PostgreSQL is not available
+        if (isTest || isSqlite) {
+          // Use SQLite for testing or when SQLite is configured
           return {
             type: 'sqlite',
-            database: ':memory:',
+            database: isTest ? ':memory:' : './mock_interview.db',
             autoLoadEntities: true,
             synchronize: true,
             logging: ['error', 'warn'],

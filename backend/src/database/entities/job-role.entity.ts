@@ -25,7 +25,7 @@ export class JobRole {
   @Column({ name: 'required_skills', type: 'text', array: true, nullable: true })
   requiredSkills: string[];
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'text', nullable: true })
   topics: any;
 
   @Column({ name: 'is_active', default: true })

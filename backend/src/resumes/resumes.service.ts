@@ -188,19 +188,19 @@ export class ResumesService {
 
     const parsed = resume.parsedData;
     if (parsed.skills && Array.isArray(parsed.skills)) {
-      profile.technical_skills = Array.from(
-        new Set([...(profile.technical_skills || []), ...parsed.skills]),
-      );
+      const currentSkills = profile.technical_skills ? JSON.parse(profile.technical_skills) : [];
+      const newSkills = Array.from(new Set([...currentSkills, ...parsed.skills]));
+      profile.technical_skills = JSON.stringify(newSkills);
     }
     if (parsed.programming_languages && Array.isArray(parsed.programming_languages)) {
-      profile.programming_languages = Array.from(
-        new Set([...(profile.programming_languages || []), ...parsed.programming_languages]),
-      );
+      const currentLangs = profile.programming_languages ? JSON.parse(profile.programming_languages) : [];
+      const newLangs = Array.from(new Set([...currentLangs, ...parsed.programming_languages]));
+      profile.programming_languages = JSON.stringify(newLangs);
     }
     if (parsed.tools_technologies && Array.isArray(parsed.tools_technologies)) {
-      profile.tools_technologies = Array.from(
-        new Set([...(profile.tools_technologies || []), ...parsed.tools_technologies]),
-      );
+      const currentTools = profile.tools_technologies ? JSON.parse(profile.tools_technologies) : [];
+      const newTools = Array.from(new Set([...currentTools, ...parsed.tools_technologies]));
+      profile.tools_technologies = JSON.stringify(newTools);
     }
     if (!profile.target_role && parsed.target_role) {
       profile.target_role = parsed.target_role;

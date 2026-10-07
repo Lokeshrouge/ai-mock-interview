@@ -16,16 +16,16 @@ export class Recommendation {
   @Column({ name: 'interview_id' })
   interviewId: string;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: 'text' })
   strengths: any;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: 'text' })
   weaknesses: any;
 
   @Column({ name: 'topics_to_improve', type: 'text', array: true })
   topicsToImprove: string[];
 
-  @Column({ name: 'recommended_resources', type: 'jsonb', nullable: true })
+  @Column({ name: 'recommended_resources', type: 'text', nullable: true })
   recommendedResources: any;
 
   @Column({ name: 'overall_feedback', type: 'text' })

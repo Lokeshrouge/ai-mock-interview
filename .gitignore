@@ -76,3 +76,9 @@ Desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# SQLite Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

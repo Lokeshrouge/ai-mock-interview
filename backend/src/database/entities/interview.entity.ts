@@ -50,20 +50,17 @@ export class Interview {
 
   @Column({
     name: 'interview_type',
-    type: 'enum',
-    enum: InterviewType,
+    type: 'varchar',
   })
   interviewType: InterviewType;
 
   @Column({
-    type: 'enum',
-    enum: InterviewDifficulty,
+    type: 'varchar',
   })
   difficulty: InterviewDifficulty;
 
   @Column({
-    type: 'enum',
-    enum: InterviewStatus,
+    type: 'varchar',
   })
   status: InterviewStatus;
 
@@ -76,10 +73,10 @@ export class Interview {
   @Column({ name: 'answered_questions', default: 0 })
   answeredQuestions: number;
 
-  @Column({ name: 'started_at', nullable: true, type: 'timestamp' })
+  @Column({ name: 'started_at', nullable: true, type: 'datetime' })
   startedAt: Date;
 
-  @Column({ name: 'completed_at', nullable: true, type: 'timestamp' })
+  @Column({ name: 'completed_at', nullable: true, type: 'datetime' })
   completedAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })

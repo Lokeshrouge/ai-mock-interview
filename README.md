@@ -77,7 +77,7 @@ ai-mock-interview/
   - `evaluations.service.spec.ts`: Multi-dimensional rubric calculation and offline fallback.
   - `recommendations.service.spec.ts`: Aggregated scoring and recommendation synthesis.
   - `admin.service.spec.ts`: Telemetry stats, candidate pagination, status toggle, system settings.
-  - **Status: 33/33 passing across 7 suites (100% OK)**.
+  - **Status: 34/34 passing across 7 suites (100% OK)**.
 
 ---
 

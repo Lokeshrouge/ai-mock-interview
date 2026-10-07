@@ -57,8 +57,7 @@ export class Resume {
   @Index('idx_resumes_processing_status')
   @Column({
     name: 'processing_status',
-    type: 'enum',
-    enum: ResumeProcessingStatus,
+    type: 'varchar',
     default: ResumeProcessingStatus.UPLOADED,
   })
   processingStatus: ResumeProcessingStatus;
@@ -66,8 +65,7 @@ export class Resume {
   @Index('idx_resumes_analysis_status')
   @Column({
     name: 'analysis_status',
-    type: 'enum',
-    enum: ResumeAnalysisStatus,
+    type: 'varchar',
     default: ResumeAnalysisStatus.PENDING,
   })
   analysisStatus: ResumeAnalysisStatus;
@@ -75,7 +73,7 @@ export class Resume {
   @Column({ name: 'extracted_text', type: 'text', nullable: true })
   extractedText: string | null;
 
-  @Column({ name: 'parsed_data', type: 'jsonb', nullable: true })
+  @Column({ name: 'parsed_data', type: 'text', nullable: true })
   parsedData: Record<string, any> | null;
 
   @Column({ name: 'error_message', type: 'text', nullable: true })

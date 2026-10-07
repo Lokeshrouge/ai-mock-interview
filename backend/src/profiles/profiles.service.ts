@@ -96,16 +96,16 @@ export class ProfilesService {
     if (dto.phone !== undefined) profile.phone = dto.phone;
     if (dto.targetRole !== undefined) profile.target_role = dto.targetRole;
     if (dto.experienceLevel !== undefined) profile.experience_level = dto.experienceLevel;
-    if (dto.careerInterests !== undefined) profile.career_interests = dto.careerInterests;
+    if (dto.careerInterests !== undefined) profile.career_interests = JSON.stringify(dto.careerInterests);
     if (dto.education !== undefined) {
-      profile.education = {
-        ...(profile.education || {}),
+      profile.education = JSON.stringify({
+        ...(profile.education ? JSON.parse(profile.education) : {}),
         ...dto.education,
-      };
+      });
     }
-    if (dto.technicalSkills !== undefined) profile.technical_skills = dto.technicalSkills;
-    if (dto.programmingLanguages !== undefined) profile.programming_languages = dto.programmingLanguages;
-    if (dto.toolsTechnologies !== undefined) profile.tools_technologies = dto.toolsTechnologies;
+    if (dto.technicalSkills !== undefined) profile.technical_skills = JSON.stringify(dto.technicalSkills);
+    if (dto.programmingLanguages !== undefined) profile.programming_languages = JSON.stringify(dto.programmingLanguages);
+    if (dto.toolsTechnologies !== undefined) profile.tools_technologies = JSON.stringify(dto.toolsTechnologies);
     if (dto.bio !== undefined) profile.bio = dto.bio;
     if (dto.linkedinUrl !== undefined) profile.linkedin_url = dto.linkedinUrl;
     if (dto.githubUrl !== undefined) profile.github_url = dto.githubUrl;
@@ -121,7 +121,7 @@ export class ProfilesService {
       profile.phone?.trim()
     );
 
-    const edu = profile.education;
+    const edu = profile.education ? JSON.parse(profile.education) : null;
     const hasEducation = !!(
       edu &&
       edu.college?.trim() &&

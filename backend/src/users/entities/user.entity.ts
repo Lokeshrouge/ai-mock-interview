@@ -28,8 +28,7 @@ export class User {
 
   @Index('idx_users_role')
   @Column({
-    type: 'enum',
-    enum: UserRole,
+    type: 'varchar',
     default: UserRole.STUDENT,
   })
   role: UserRole;
@@ -40,7 +39,7 @@ export class User {
   @Column({ type: 'int', default: 0 })
   failed_login_attempts: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   locked_until: Date | null;
 
   @OneToOne(() => StudentProfile, (profile) => profile.user, {
@@ -48,9 +47,9 @@ export class User {
   })
   profile: StudentProfile;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 }

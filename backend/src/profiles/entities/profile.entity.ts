@@ -17,6 +17,25 @@ export interface EducationDetails {
   graduationYear?: number;
 }
 
+// Helper functions for JSON string fields
+export function parseEducation(education: string | null): EducationDetails | null {
+  if (!education) return null;
+  try {
+    return JSON.parse(education);
+  } catch {
+    return null;
+  }
+}
+
+export function parseStringArray(field: string | null): string[] {
+  if (!field) return [];
+  try {
+    return JSON.parse(field);
+  } catch {
+    return [];
+  }
+}
+
 @Entity('student_profiles')
 export class StudentProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -45,20 +64,20 @@ export class StudentProfile {
   @Column({ type: 'varchar', length: 50, nullable: true })
   experience_level: string | null;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  career_interests: string[] | null;
+  @Column({ type: 'text', nullable: true })
+  career_interests: string | null;
 
-  @Column({ type: 'jsonb', nullable: true })
-  education: EducationDetails | null;
+  @Column({ type: 'text', nullable: true })
+  education: string | null;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  technical_skills: string[] | null;
+  @Column({ type: 'text', nullable: true })
+  technical_skills: string | null;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  programming_languages: string[] | null;
+  @Column({ type: 'text', nullable: true })
+  programming_languages: string | null;
 
-  @Column({ type: 'text', array: true, nullable: true })
-  tools_technologies: string[] | null;
+  @Column({ type: 'text', nullable: true })
+  tools_technologies: string | null;
 
   @Column({ type: 'text', nullable: true })
   bio: string | null;
@@ -72,9 +91,9 @@ export class StudentProfile {
   @Column({ type: 'varchar', length: 255, nullable: true })
   github_url: string | null;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 }
