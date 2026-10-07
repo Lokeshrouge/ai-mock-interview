@@ -9,6 +9,7 @@ import { JobRolesModule } from './job-roles/job-roles.module';
 import { InterviewsModule } from './interviews/interviews.module';
 import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { AppController } from './app.controller';
     InterviewsModule,
     AdminModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [],
 })
 export class AppModule {}

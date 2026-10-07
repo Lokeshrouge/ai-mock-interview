@@ -51,7 +51,8 @@ npx jest --runInBand
 - `admin.service.spec.ts`: 5/5 passed (telemetry stats, candidate pagination, status toggle, system settings)
 - `profiles.service.spec.ts`: 5/5 passed (profile loading, completion percentage calculation, missing sections)
 - `resumes.service.spec.ts`: 5/5 passed (file upload validation, extension checks, ownership isolation)
-- **Result: 34 / 34 tests passed across 7 test suites (100% OK)**
+- `integration-workflow.spec.ts`: 6/6 passed (11-step end-to-end user workflow: register, login, profile, resume, setup, question, answer, scoring, recommendations, report, history)
+- **Result: 40 / 40 tests passed across 8 test suites (100% OK)**
 
 ### 3. Next.js 14 Frontend Production Build
 ```bash
