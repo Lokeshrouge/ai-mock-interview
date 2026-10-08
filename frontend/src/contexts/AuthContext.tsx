@@ -38,11 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password });
-    const { accessToken, refreshToken, ...userData } = response.data.data;
+    const { accessToken, refreshToken, ...userData } = response.data;
     
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     
     setUser(userData);
     router.push('/dashboard');
@@ -55,11 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       firstName,
       lastName,
     });
-    const { accessToken, refreshToken, ...userData } = response.data.data;
+    const { accessToken, refreshToken, ...userData } = response.data;
     
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     
     setUser(userData);
     router.push('/dashboard');
