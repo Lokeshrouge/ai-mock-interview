@@ -59,7 +59,7 @@ lerna-debug.log*
 
 # Uploads and temporary files
 uploads/
-storage/
+/storage/
 temp/
 tmp/
 
