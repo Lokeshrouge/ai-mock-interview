@@ -8,10 +8,11 @@
     "backend"
   ],
   "scripts": {
-    "dev": "npm run dev:all",
+    "start:all": "start-all.bat",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run start:dev",
     "dev:ai": "cd ai-service && uvicorn app.main:app --reload --port 8000",
+    "dev:ai:mock": "cd ai-service && python test_server.py",
     "build:frontend": "npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
     "docker:up": "docker-compose up -d",

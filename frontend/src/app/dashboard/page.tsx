@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/api';
 import {
   UserCheck,
@@ -38,13 +39,24 @@ interface InterviewItem {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [profileData, setProfileData] = useState<any>(null);
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      loadDashboard();
+    }
+  }, [user, authLoading]);
 
   const loadDashboard = async () => {
     try {
@@ -67,6 +79,18 @@ export default function DashboardPage() {
     }
   };
 
+  // Show loading while checking authentication
+  if (authLoading || !user) {
+    return (
+      <div className="flex-1 w-full flex items-center justify-center bg-slate-950">
+        <div className="flex items-center space-x-3 text-slate-400">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <span>Loading dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
   const completion = profileData?.completion;
   const profile = profileData?.profile;
 
@@ -85,10 +109,8 @@ export default function DashboardPage() {
       : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 selection:bg-indigo-500 selection:text-white">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex-1 w-full bg-slate-950 selection:bg-indigo-500 selection:text-white">
+      <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/15 relative overflow-hidden">
           {/* Subtle background glow */}
@@ -440,7 +462,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

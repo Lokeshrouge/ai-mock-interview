@@ -150,22 +150,68 @@ PROJECT_QUESTIONS = [
 
 
 def is_duplicate(new_q: str, previous: List[str]) -> bool:
-    """Check if new question is substantially identical to any previous question."""
-    new_clean = re.sub(r"[^\w\s]", "", new_q.lower())
+    """
+    Check if new question is substantially identical to any previous question.
+    Uses multiple strategies to detect duplicates:
+    1. Exact match (case-insensitive)
+    2. High word overlap (>75%)
+    3. Semantic similarity of core question
+    """
+    if not new_q or not previous:
+        return False
+    
+    new_clean = re.sub(r"[^\w\s]", "", new_q.lower()).strip()
     new_words = set(new_clean.split())
-
+    
+    # Extract core question (remove context prefixes)
+    new_core = new_q.lower()
+    for prefix in ["considering your experience with", "question #", "in the context of"]:
+        if prefix in new_core:
+            parts = new_core.split(prefix, 1)
+            if len(parts) > 1:
+                new_core = parts[1].strip()
+    
     for prev in previous:
-        prev_clean = re.sub(r"[^\w\s]", "", prev.lower())
-        prev_words = set(prev_clean.split())
-        if not new_words or not prev_words:
+        if not prev:
             continue
-        overlap = len(new_words.intersection(prev_words)) / max(len(new_words), len(prev_words))
-        if overlap > 0.75:
+            
+        # Check 1: Exact match
+        if new_clean == re.sub(r"[^\w\s]", "", prev.lower()).strip():
             return True
+        
+        # Check 2: Word overlap
+        prev_clean = re.sub(r"[^\w\s]", "", prev.lower()).strip()
+        prev_words = set(prev_clean.split())
+        
+        if new_words and prev_words:
+            overlap = len(new_words.intersection(prev_words)) / max(len(new_words), len(prev_words))
+            if overlap > 0.75:
+                return True
+        
+        # Check 3: Core question similarity
+        prev_core = prev.lower()
+        for prefix in ["considering your experience with", "question #", "in the context of"]:
+            if prefix in prev_core:
+                parts = prev_core.split(prefix, 1)
+                if len(parts) > 1:
+                    prev_core = parts[1].strip()
+        
+        # If cores are very similar, it's a duplicate
+        new_core_words = set(new_core.split())
+        prev_core_words = set(prev_core.split())
+        if new_core_words and prev_core_words:
+            core_overlap = len(new_core_words.intersection(prev_core_words)) / max(len(new_core_words), len(prev_core_words))
+            if core_overlap > 0.85:
+                return True
+    
     return False
 
 
 def get_heuristic_question(req: AdaptiveQuestionRequest) -> AdaptiveQuestionResponse:
+    """
+    Generates a question from curated pools with strong duplicate prevention.
+    Tries multiple strategies to ensure uniqueness.
+    """
     itype = req.interview_type.upper()
     role_key = req.job_role.lower()
 
@@ -197,11 +243,30 @@ def get_heuristic_question(req: AdaptiveQuestionRequest) -> AdaptiveQuestionResp
     # Candidate skill contextualization
     skill_context = req.candidate_skills[0] if req.candidate_skills else None
 
-    for item in candidates:
+    # Try to find a unique question from the pool
+    # Shuffle to add variety
+    import random
+    shuffled_candidates = list(candidates)
+    random.shuffle(shuffled_candidates)
+    
+    for item in shuffled_candidates:
         q_text = item["question"]
+        
+        # Add skill context if applicable
         if skill_context and req.question_number > 1 and itype == "TECHNICAL":
-            q_text = f"Considering your experience with {skill_context}: {q_text}"
-
+            # Check if contextualized version is duplicate
+            contextualized = f"Considering your experience with {skill_context}: {q_text}"
+            if not is_duplicate(contextualized, req.previous_questions):
+                return AdaptiveQuestionResponse(
+                    question=contextualized,
+                    type=req.interview_type.lower(),
+                    difficulty=req.difficulty.lower(),
+                    topic=item["topic"],
+                    expected_points=item["expected_points"],
+                    question_number=req.question_number,
+                )
+        
+        # Try plain question
         if not is_duplicate(q_text, req.previous_questions):
             return AdaptiveQuestionResponse(
                 question=q_text,
@@ -212,17 +277,42 @@ def get_heuristic_question(req: AdaptiveQuestionRequest) -> AdaptiveQuestionResp
                 question_number=req.question_number,
             )
 
-    # Generic adaptive fallback
+    # If all pool questions are duplicates, generate a unique generic question
+    # This should rarely happen if pools are large enough
+    fallback_topics = [
+        "Code Quality and Testing",
+        "System Design Principles",
+        "Problem Solving Approach",
+        "Technical Communication",
+        "Learning and Adaptation",
+        "Performance Optimization",
+        "Security Best Practices",
+        "Team Collaboration",
+        "Project Management",
+        "Innovation and Creativity"
+    ]
+    
+    # Pick a topic that hasn't been used recently
+    used_topics = [q.split(":")[-1].split("?")[0].strip().lower() for q in req.previous_questions if ":" in q or "?" in q]
+    available_topics = [t for t in fallback_topics if t.lower() not in used_topics]
+    
+    if not available_topics:
+        available_topics = fallback_topics
+    
+    import random
+    topic = random.choice(available_topics)
+    
     fallback_q = (
-        f"Question #{req.question_number}: In the context of a {req.job_role} role at {req.difficulty.lower()} level, "
-        f"explain how you approach code quality, reliability, and automated testing."
+        f"As a {req.job_role} working on a complex project, how would you approach {topic.lower()} "
+        f"to ensure both immediate delivery and long-term maintainability?"
     )
+    
     return AdaptiveQuestionResponse(
         question=fallback_q,
         type=req.interview_type.lower(),
         difficulty=req.difficulty.lower(),
-        topic="Engineering Practices",
-        expected_points=["Unit and integration testing", "Static analysis and linting", "Continuous integration"],
+        topic=topic,
+        expected_points=["Clear methodology", "Best practices", "Real-world examples"],
         question_number=req.question_number,
     )
 
@@ -278,7 +368,8 @@ Output JSON schema:
 """
 
     try:
-        if settings.AI_PROVIDER == "openai" and settings.OPENAI_API_KEY:
+        is_placeholder = settings.OPENAI_API_KEY.startswith("test_") or settings.OPENAI_API_KEY.startswith("your_")
+        if settings.AI_PROVIDER == "openai" and settings.OPENAI_API_KEY and not is_placeholder:
             import httpx
 
             async with httpx.AsyncClient(timeout=20.0) as client:

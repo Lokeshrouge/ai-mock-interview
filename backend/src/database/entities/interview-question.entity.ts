@@ -27,7 +27,7 @@ export class InterviewQuestion {
   @Column({ name: 'question_category', length: 100, nullable: true })
   questionCategory: string;
 
-  @Column({ name: 'expected_points', type: 'text', array: true, nullable: true })
+  @Column({ name: 'expected_points', type: 'simple-array', nullable: true })
   expectedPoints: string[];
 
   @CreateDateColumn({ name: 'generated_at' })

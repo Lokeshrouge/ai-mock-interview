@@ -16,17 +16,17 @@ export class Recommendation {
   @Column({ name: 'interview_id' })
   interviewId: string;
 
-  @Column({ type: 'text' })
-  strengths: any;
+  @Column({ type: 'simple-json', nullable: true })
+  strengths: string[];
 
-  @Column({ type: 'text' })
-  weaknesses: any;
+  @Column({ type: 'simple-json', nullable: true })
+  weaknesses: string[];
 
-  @Column({ name: 'topics_to_improve', type: 'text', array: true })
+  @Column({ name: 'topics_to_improve', type: 'simple-json', nullable: true })
   topicsToImprove: string[];
 
-  @Column({ name: 'recommended_resources', type: 'text', nullable: true })
-  recommendedResources: any;
+  @Column({ name: 'recommended_resources', type: 'simple-json', nullable: true })
+  recommendedResources: any[];
 
   @Column({ name: 'overall_feedback', type: 'text' })
   overallFeedback: string;

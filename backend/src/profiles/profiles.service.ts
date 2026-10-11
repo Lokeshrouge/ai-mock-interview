@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StudentProfile } from './entities/profile.entity';
-import { User } from '../users/entities/user.entity';
+import { StudentProfile } from '../database/entities/student-profile.entity';
+import { User } from '../database/entities/user.entity';
 import { Resume } from '../database/entities/resume.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
@@ -31,7 +31,7 @@ export class ProfilesService {
 
   async getProfile(userId: string) {
     const profile = await this.profileRepository.findOne({
-      where: { user_id: userId },
+      where: { userId: userId },
     });
 
     if (!profile) {
@@ -52,24 +52,24 @@ export class ProfilesService {
     return {
       profile: {
         id: profile.id,
-        userId: profile.user_id,
+        userId: profile.userId,
         email: user?.email || '',
-        firstName: profile.first_name,
-        lastName: profile.last_name,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         phone: profile.phone,
-        targetRole: profile.target_role,
-        experienceLevel: profile.experience_level,
-        careerInterests: profile.career_interests || [],
-        education: profile.education || {},
-        technicalSkills: profile.technical_skills || [],
-        programmingLanguages: profile.programming_languages || [],
-        toolsTechnologies: profile.tools_technologies || [],
+        targetRole: profile.targetRole,
+        experienceLevel: profile.experienceLevel,
+        careerInterests: profile.careerInterests ? JSON.parse(profile.careerInterests) : [],
+        education: profile.education ? JSON.parse(profile.education) : {},
+        technicalSkills: profile.technicalSkills ? JSON.parse(profile.technicalSkills) : [],
+        programmingLanguages: profile.programmingLanguages ? JSON.parse(profile.programmingLanguages) : [],
+        toolsTechnologies: profile.toolsTechnologies ? JSON.parse(profile.toolsTechnologies) : [],
         bio: profile.bio,
-        profilePictureUrl: profile.profile_picture_url,
-        linkedinUrl: profile.linkedin_url,
-        githubUrl: profile.github_url,
-        createdAt: profile.created_at,
-        updatedAt: profile.updated_at,
+        profilePictureUrl: profile.profilePictureUrl,
+        linkedinUrl: profile.linkedinUrl,
+        githubUrl: profile.githubUrl,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
       },
       hasActiveResume: !!activeResume,
       activeResumeId: activeResume?.id || null,
@@ -79,36 +79,36 @@ export class ProfilesService {
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
     let profile = await this.profileRepository.findOne({
-      where: { user_id: userId },
+      where: { userId: userId },
     });
 
     if (!profile) {
       // Lazy creation if profile was somehow missing
       profile = this.profileRepository.create({
-        user_id: userId,
-        first_name: dto.firstName || '',
-        last_name: dto.lastName || '',
+        userId: userId,
+        firstName: dto.firstName || '',
+        lastName: dto.lastName || '',
       });
     }
 
-    if (dto.firstName !== undefined) profile.first_name = dto.firstName;
-    if (dto.lastName !== undefined) profile.last_name = dto.lastName;
+    if (dto.firstName !== undefined) profile.firstName = dto.firstName;
+    if (dto.lastName !== undefined) profile.lastName = dto.lastName;
     if (dto.phone !== undefined) profile.phone = dto.phone;
-    if (dto.targetRole !== undefined) profile.target_role = dto.targetRole;
-    if (dto.experienceLevel !== undefined) profile.experience_level = dto.experienceLevel;
-    if (dto.careerInterests !== undefined) profile.career_interests = JSON.stringify(dto.careerInterests);
+    if (dto.targetRole !== undefined) profile.targetRole = dto.targetRole;
+    if (dto.experienceLevel !== undefined) profile.experienceLevel = dto.experienceLevel;
+    if (dto.careerInterests !== undefined) profile.careerInterests = JSON.stringify(dto.careerInterests);
     if (dto.education !== undefined) {
       profile.education = JSON.stringify({
         ...(profile.education ? JSON.parse(profile.education) : {}),
         ...dto.education,
       });
     }
-    if (dto.technicalSkills !== undefined) profile.technical_skills = JSON.stringify(dto.technicalSkills);
-    if (dto.programmingLanguages !== undefined) profile.programming_languages = JSON.stringify(dto.programmingLanguages);
-    if (dto.toolsTechnologies !== undefined) profile.tools_technologies = JSON.stringify(dto.toolsTechnologies);
+    if (dto.technicalSkills !== undefined) profile.technicalSkills = JSON.stringify(dto.technicalSkills);
+    if (dto.programmingLanguages !== undefined) profile.programmingLanguages = JSON.stringify(dto.programmingLanguages);
+    if (dto.toolsTechnologies !== undefined) profile.toolsTechnologies = JSON.stringify(dto.toolsTechnologies);
     if (dto.bio !== undefined) profile.bio = dto.bio;
-    if (dto.linkedinUrl !== undefined) profile.linkedin_url = dto.linkedinUrl;
-    if (dto.githubUrl !== undefined) profile.github_url = dto.githubUrl;
+    if (dto.linkedinUrl !== undefined) profile.linkedinUrl = dto.linkedinUrl;
+    if (dto.githubUrl !== undefined) profile.githubUrl = dto.githubUrl;
 
     const savedProfile = await this.profileRepository.save(profile);
     return this.getProfile(userId);
@@ -116,8 +116,8 @@ export class ProfilesService {
 
   calculateCompletion(profile: StudentProfile, hasResume: boolean): ProfileCompletionDetails {
     const hasBasic = !!(
-      profile.first_name?.trim() &&
-      profile.last_name?.trim() &&
+      profile.firstName?.trim() &&
+      profile.lastName?.trim() &&
       profile.phone?.trim()
     );
 
@@ -131,13 +131,13 @@ export class ProfilesService {
     );
 
     const hasCareer = !!(
-      profile.target_role?.trim() &&
-      profile.experience_level?.trim()
+      profile.targetRole?.trim() &&
+      profile.experienceLevel?.trim()
     );
 
     const hasSkills = !!(
-      (profile.technical_skills && profile.technical_skills.length > 0) ||
-      (profile.programming_languages && profile.programming_languages.length > 0)
+      (profile.technicalSkills && JSON.parse(profile.technicalSkills).length > 0) ||
+      (profile.programmingLanguages && JSON.parse(profile.programmingLanguages).length > 0)
     );
 
     const breakdown = {

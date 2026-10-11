@@ -57,4 +57,23 @@ export class User {
 
   @OneToMany(() => Interview, (interview) => interview.user)
   interviews: Interview[];
+
+  // Compatibility getters and setters for snake_case callers
+  get password_hash(): string { return this.passwordHash; }
+  set password_hash(val: string) { this.passwordHash = val; }
+
+  get is_active(): boolean { return this.isActive; }
+  set is_active(val: boolean) { this.isActive = val; }
+
+  get failed_login_attempts(): number { return this.failedLoginAttempts; }
+  set failed_login_attempts(val: number) { this.failedLoginAttempts = val; }
+
+  get locked_until(): Date { return this.lockedUntil; }
+  set locked_until(val: Date) { this.lockedUntil = val; }
+
+  get created_at(): Date { return this.createdAt; }
+  set created_at(val: Date) { this.createdAt = val; }
+
+  get updated_at(): Date { return this.updatedAt; }
+  set updated_at(val: Date) { this.updatedAt = val; }
 }

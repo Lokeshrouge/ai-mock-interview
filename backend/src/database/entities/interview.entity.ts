@@ -73,6 +73,21 @@ export class Interview {
   @Column({ name: 'answered_questions', default: 0 })
   answeredQuestions: number;
 
+  @Column({ name: 'target_company', nullable: true, type: 'varchar', length: 200 })
+  targetCompany: string;
+
+  @Column({ name: 'target_role', nullable: true, type: 'varchar', length: 200 })
+  targetRole: string;
+
+  @Column({ name: 'experience_level', nullable: true, type: 'varchar', length: 50 })
+  experienceLevel: string;
+
+  @Column({ name: 'interview_round', nullable: true, type: 'varchar', length: 100 })
+  interviewRound: string;
+
+  @Column({ name: 'job_description', nullable: true, type: 'text' })
+  jobDescription: string;
+
   @Column({ name: 'started_at', nullable: true, type: 'datetime' })
   startedAt: Date;
 

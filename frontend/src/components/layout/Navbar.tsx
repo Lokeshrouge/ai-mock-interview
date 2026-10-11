@@ -183,8 +183,8 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition ${
                 isActive('/admin')
-                  ? 'bg-purple-50 text-purple-700'
-                  : 'text-purple-700 hover:bg-purple-50'
+                  ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+                  : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40'
               }`}
             >
               <Shield className="w-4 h-4" />
@@ -196,7 +196,7 @@ export function Navbar() {
             <Link
               href="/interview/setup"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/20"
             >
               <PlayCircle className="w-4 h-4" />
               <span>Practice Interview</span>
@@ -207,7 +207,7 @@ export function Navbar() {
                 setMobileMenuOpen(false);
                 logout();
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out ({user.email})</span>

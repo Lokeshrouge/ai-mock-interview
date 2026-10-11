@@ -13,22 +13,22 @@ export function Input({ label, error, helperText, className, id, ...props }: Inp
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={inputId} className="block text-xs font-semibold text-slate-300 mb-1.5">
           {label}
         </label>
       )}
       <input
         id={inputId}
         className={cn(
-          'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors',
-          error ? 'border-red-500' : 'border-gray-300',
-          'disabled:bg-gray-100 disabled:cursor-not-allowed',
+          'w-full px-4 py-2.5 bg-slate-950/70 text-white placeholder:text-slate-500 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none text-sm',
+          error ? 'border-rose-500' : 'border-slate-700',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
           className
         )}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-      {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
+      {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
+      {helperText && !error && <p className="mt-1 text-xs text-slate-400">{helperText}</p>}
     </div>
   );
 }
@@ -48,7 +48,7 @@ export function Textarea({ label, error, helperText, showCount, maxLength, class
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={inputId} className="block text-xs font-semibold text-slate-300 mb-1.5">
           {label}
         </label>
       )}
@@ -57,9 +57,9 @@ export function Textarea({ label, error, helperText, showCount, maxLength, class
         value={value}
         maxLength={maxLength}
         className={cn(
-          'w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none',
-          error ? 'border-red-500' : 'border-gray-300',
-          'disabled:bg-gray-100 disabled:cursor-not-allowed',
+          'w-full px-4 py-2.5 bg-slate-950/70 text-white placeholder:text-slate-500 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none text-sm resize-none',
+          error ? 'border-rose-500' : 'border-slate-700',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
           className
         )}
         {...props}

@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import {
@@ -16,12 +15,13 @@ import {
   ResumeProcessingStatus,
   ResumeAnalysisStatus,
 } from '../database/entities/resume.entity';
-import { StudentProfile } from '../profiles/entities/profile.entity';
+import { StudentProfile } from '../database/entities/student-profile.entity';
+import { TextExtractorService } from './text-extractor.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class ResumesService {
   private readonly logger = new Logger(ResumesService.name);
-  private readonly uploadDir: string;
   private readonly aiServiceUrl: string;
 
   constructor(
@@ -30,14 +30,13 @@ export class ResumesService {
     @InjectRepository(StudentProfile)
     private profileRepository: Repository<StudentProfile>,
     private configService: ConfigService,
+    private textExtractor: TextExtractorService,
+    private storageService: StorageService,
   ) {
-    this.uploadDir = path.resolve(process.cwd(), 'uploads', 'resumes');
     this.aiServiceUrl =
       this.configService.get<string>('AI_SERVICE_URL') || 'http://localhost:8000';
-
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
-    }
+    
+    this.logger.log(`Resume service initialized with ${this.storageService.getStorageType()} storage`);
   }
 
   async uploadResume(
@@ -73,10 +72,19 @@ export class ResumesService {
 
     // Secure randomized filename
     const secureRandomName = `${crypto.randomUUID()}.${ext}`;
-    const targetFilePath = path.join(this.uploadDir, secureRandomName);
 
-    // Save to disk
-    fs.writeFileSync(targetFilePath, file.buffer);
+    // Upload to storage (local/S3/Cloudinary)
+    const uploadResult = await this.storageService.uploadFile(
+      file.buffer,
+      secureRandomName,
+      file.mimetype,
+    );
+
+    if (!uploadResult.success) {
+      throw new BadRequestException(
+        `Failed to upload file: ${uploadResult.error}`,
+      );
+    }
 
     // Deactivate previous active resumes for this student
     await this.resumeRepository.update(
@@ -88,7 +96,7 @@ export class ResumesService {
       userId,
       fileName: path.basename(file.originalname),
       storedFileName: secureRandomName,
-      filePath: targetFilePath,
+      filePath: uploadResult.filePath,
       fileType: ext,
       mimeType: file.mimetype,
       fileSize: file.size,
@@ -100,7 +108,7 @@ export class ResumesService {
     const saved = await this.resumeRepository.save(resume);
 
     // Asynchronously trigger processing so upload response is lightning fast
-    this.processResumeAsync(saved.id, userId, targetFilePath, ext);
+    this.processResumeAsync(saved.id, userId, file.buffer, ext);
 
     return saved;
   }
@@ -131,13 +139,10 @@ export class ResumesService {
   async deleteResume(userId: string, resumeId: string): Promise<{ success: boolean; message: string }> {
     const resume = await this.getResumeById(userId, resumeId);
 
-    // Remove file from disk
-    if (fs.existsSync(resume.filePath)) {
-      try {
-        fs.unlinkSync(resume.filePath);
-      } catch (err) {
-        this.logger.warn(`Failed to unlink file ${resume.filePath}: ${err.message}`);
-      }
+    // Remove file from storage
+    const deleted = await this.storageService.deleteFile(resume.filePath);
+    if (!deleted) {
+      this.logger.warn(`Failed to delete file ${resume.filePath} from storage`);
     }
 
     await this.resumeRepository.remove(resume);
@@ -146,31 +151,39 @@ export class ResumesService {
 
   async getResumeFileStream(userId: string, resumeId: string) {
     const resume = await this.getResumeById(userId, resumeId);
-    if (!fs.existsSync(resume.filePath)) {
-      throw new NotFoundException('Resume file not found on disk');
+    
+    try {
+      const fileBuffer = await this.storageService.getFile(resume.filePath);
+      
+      return {
+        buffer: fileBuffer,
+        fileName: resume.fileName,
+        mimeType: resume.mimeType,
+        fileSize: resume.fileSize,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to retrieve file: ${error.message}`);
+      throw new NotFoundException('Resume file not found in storage');
     }
-    return {
-      stream: fs.createReadStream(resume.filePath),
-      fileName: resume.fileName,
-      mimeType: resume.mimeType,
-      fileSize: resume.fileSize,
-    };
   }
 
   async retryProcessing(userId: string, resumeId: string): Promise<Resume> {
     const resume = await this.getResumeById(userId, resumeId);
 
-    if (!fs.existsSync(resume.filePath)) {
+    // Check if file exists in storage
+    try {
+      const fileBuffer = await this.storageService.getFile(resume.filePath);
+      
+      resume.processingStatus = ResumeProcessingStatus.PROCESSING;
+      resume.analysisStatus = ResumeAnalysisStatus.ANALYZING;
+      resume.errorMessage = null;
+      await this.resumeRepository.save(resume);
+
+      this.processResumeAsync(resume.id, userId, fileBuffer, resume.fileType);
+      return resume;
+    } catch (error) {
       throw new BadRequestException('Source file is missing. Please re-upload your resume.');
     }
-
-    resume.processingStatus = ResumeProcessingStatus.PROCESSING;
-    resume.analysisStatus = ResumeAnalysisStatus.ANALYZING;
-    resume.errorMessage = null;
-    await this.resumeRepository.save(resume);
-
-    this.processResumeAsync(resume.id, userId, resume.filePath, resume.fileType);
-    return resume;
   }
 
   async applyToProfile(userId: string, resumeId: string) {
@@ -180,7 +193,7 @@ export class ResumesService {
     }
 
     const profile = await this.profileRepository.findOne({
-      where: { user_id: userId },
+      where: { userId },
     });
     if (!profile) {
       throw new NotFoundException('Profile not found');
@@ -188,25 +201,25 @@ export class ResumesService {
 
     const parsed = resume.parsedData;
     if (parsed.skills && Array.isArray(parsed.skills)) {
-      const currentSkills = profile.technical_skills ? JSON.parse(profile.technical_skills) : [];
+      const currentSkills = profile.technicalSkills ? JSON.parse(profile.technicalSkills) : [];
       const newSkills = Array.from(new Set([...currentSkills, ...parsed.skills]));
-      profile.technical_skills = JSON.stringify(newSkills);
+      profile.technicalSkills = JSON.stringify(newSkills);
     }
     if (parsed.programming_languages && Array.isArray(parsed.programming_languages)) {
-      const currentLangs = profile.programming_languages ? JSON.parse(profile.programming_languages) : [];
+      const currentLangs = profile.programmingLanguages ? JSON.parse(profile.programmingLanguages) : [];
       const newLangs = Array.from(new Set([...currentLangs, ...parsed.programming_languages]));
-      profile.programming_languages = JSON.stringify(newLangs);
+      profile.programmingLanguages = JSON.stringify(newLangs);
     }
     if (parsed.tools_technologies && Array.isArray(parsed.tools_technologies)) {
-      const currentTools = profile.tools_technologies ? JSON.parse(profile.tools_technologies) : [];
+      const currentTools = profile.toolsTechnologies ? JSON.parse(profile.toolsTechnologies) : [];
       const newTools = Array.from(new Set([...currentTools, ...parsed.tools_technologies]));
-      profile.tools_technologies = JSON.stringify(newTools);
+      profile.toolsTechnologies = JSON.stringify(newTools);
     }
-    if (!profile.target_role && parsed.target_role) {
-      profile.target_role = parsed.target_role;
+    if (!profile.targetRole && parsed.target_role) {
+      profile.targetRole = parsed.target_role;
     }
-    if (!profile.experience_level && parsed.experience_level) {
-      profile.experience_level = parsed.experience_level;
+    if (!profile.experienceLevel && parsed.experience_level) {
+      profile.experienceLevel = parsed.experience_level;
     }
 
     await this.profileRepository.save(profile);
@@ -216,30 +229,33 @@ export class ResumesService {
   private async processResumeAsync(
     resumeId: string,
     userId: string,
-    filePath: string,
+    fileBuffer: Buffer,
     fileType: string,
   ) {
     try {
+      // Step 1: Mark as EXTRACTING
       await this.resumeRepository.update(
         { id: resumeId },
         {
-          processingStatus: ResumeProcessingStatus.PROCESSING,
-          analysisStatus: ResumeAnalysisStatus.ANALYZING,
+          processingStatus: ResumeProcessingStatus.EXTRACTING,
+          analysisStatus: ResumeAnalysisStatus.PENDING,
         },
       );
-
-      const fileBuffer = fs.readFileSync(filePath);
 
       // Attempt AI Service extraction & parsing
       let extractedText = '';
       let parsedData: any = null;
+      let usedAIService = false;
 
       try {
         const formData = new FormData();
-        const blob = new Blob([fileBuffer], {
+        // Copy Buffer to Uint8Array to ensure it's backed by ArrayBuffer (not SharedArrayBuffer)
+        const uint8Array = new Uint8Array(fileBuffer.length);
+        uint8Array.set(fileBuffer);
+        const fileBlob = new Blob([uint8Array], {
           type: fileType === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         });
-        formData.append('file', blob, `resume.${fileType}`);
+        formData.append('file', fileBlob, `resume.${fileType}`);
 
         const response = await fetch(`${this.aiServiceUrl}/resume/extract-and-parse`, {
           method: 'POST',
@@ -251,6 +267,7 @@ export class ResumesService {
           if (result.success) {
             extractedText = result.extracted_text;
             parsedData = result.parsed_data;
+            usedAIService = true;
           } else {
             throw new Error(result.error || 'Text extraction failed in AI Service');
           }
@@ -258,27 +275,52 @@ export class ResumesService {
           throw new Error(`AI Service HTTP status ${response.status}`);
         }
       } catch (aiErr) {
-        this.logger.warn(`AI Service unavailable (${aiErr.message}), executing local extraction fallback`);
-        // Fallback local text extraction
-        extractedText = this.localFallbackExtraction(fileBuffer, fileType);
-        if (!extractedText || extractedText.trim().length === 0) {
-          throw new Error('Unable to extract text from document. File may be empty or corrupted.');
+        this.logger.warn(`AI Service unavailable (${aiErr.message}), using local PDF/DOCX extraction`);
+        
+        // Use proper local extraction with pdf-parse and mammoth
+        const extractionResult = await this.textExtractor.extractText(fileBuffer, fileType);
+        
+        if (!extractionResult.success) {
+          throw new Error(extractionResult.error || 'Text extraction failed');
         }
+
+        // Validate extracted text
+        const validation = this.textExtractor.validateExtractedText(extractionResult.text);
+        if (!validation.valid) {
+          throw new Error(`Invalid extracted text: ${validation.reason}`);
+        }
+
+        extractedText = extractionResult.text;
+        
+        // Create basic parsed data when AI service unavailable
         parsedData = {
-          skills: ['Problem Solving', 'Communication'],
+          extracted_successfully: true,
+          extraction_method: 'local',
+          skills: [],
           programming_languages: [],
           tools_technologies: [],
-          experience_level: 'Student / Fresher',
+          experience_level: 'Not analyzed',
+          word_count: extractionResult.metadata?.wordCount || 0,
+          pages: extractionResult.metadata?.pages,
         };
       }
+
+      // Determine final status
+      const finalStatus = usedAIService 
+        ? ResumeProcessingStatus.PROCESSED 
+        : ResumeProcessingStatus.PARTIALLY_PROCESSED;
+      
+      const finalAnalysisStatus = usedAIService
+        ? ResumeAnalysisStatus.COMPLETED
+        : ResumeAnalysisStatus.PENDING;
 
       await this.resumeRepository.update(
         { id: resumeId },
         {
           extractedText,
           parsedData,
-          processingStatus: ResumeProcessingStatus.PROCESSED,
-          analysisStatus: ResumeAnalysisStatus.COMPLETED,
+          processingStatus: finalStatus,
+          analysisStatus: finalAnalysisStatus,
           errorMessage: null,
         },
       );
@@ -293,16 +335,5 @@ export class ResumesService {
         },
       );
     }
-  }
-
-  private localFallbackExtraction(buffer: Buffer, fileType: string): string {
-    // Strip binary formatting to recover basic UTF-8 printable ASCII strings
-    const str = buffer.toString('latin1');
-    const matches = str.match(/[\x20-\x7E\t\n\r]{4,}/g) || [];
-    const text = matches
-      .filter((line) => !line.includes('/Type') && !line.includes('FontDescriptor'))
-      .join('\n')
-      .trim();
-    return text.substring(0, 5000);
   }
 }

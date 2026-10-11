@@ -22,10 +22,10 @@ export class Evaluation {
   @Column({ type: 'text' })
   feedback: string;
 
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'simple-array', nullable: true })
   strengths: string[];
 
-  @Column({ type: 'text', array: true, nullable: true })
+  @Column({ type: 'simple-array', nullable: true })
   weaknesses: string[];
 
   @Column({ name: 'relevance_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
@@ -39,6 +39,22 @@ export class Evaluation {
 
   @Column({ name: 'clarity_score', type: 'decimal', precision: 3, scale: 2, nullable: true })
   clarityScore: number;
+
+  // Coaching fields for "How You Should Answer" feature
+  @Column({ name: 'model_answer', type: 'text', nullable: true })
+  modelAnswer: string;
+
+  @Column({ name: 'why_better', type: 'text', nullable: true })
+  whyBetter: string;
+
+  @Column({ name: 'answer_framework', type: 'varchar', length: 500, nullable: true })
+  answerFramework: string;
+
+  @Column({ name: 'key_concepts', type: 'simple-json', nullable: true })
+  keyConcepts: string[];
+
+  @Column({ name: 'study_recommendations', type: 'simple-json', nullable: true })
+  studyRecommendations: string[];
 
   @CreateDateColumn({ name: 'evaluated_at' })
   evaluatedAt: Date;

@@ -1,4 +1,4 @@
-import { IsUUID, IsEnum, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsUUID, IsEnum, IsOptional, IsInt, Min, Max, ValidateIf, IsString, MaxLength } from 'class-validator';
 import {
   InterviewType,
   InterviewDifficulty,
@@ -7,6 +7,7 @@ import {
 export class CreateInterviewDto {
   @IsUUID()
   @IsOptional()
+  @ValidateIf((o) => !!o.resumeId)
   resumeId?: string;
 
   @IsUUID()
@@ -20,7 +21,31 @@ export class CreateInterviewDto {
 
   @IsInt()
   @Min(5)
-  @Max(15)
+  @Max(20)
   @IsOptional()
   questionCount?: number = 10;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(200)
+  targetCompany?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(200)
+  targetRole?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  experienceLevel?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  interviewRound?: string;
+
+  @IsString()
+  @IsOptional()
+  jobDescription?: string;
 }

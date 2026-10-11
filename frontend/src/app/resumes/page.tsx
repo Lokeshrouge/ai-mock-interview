@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import api from '@/lib/api';
 import {
   UploadCloud,
@@ -243,10 +242,8 @@ export default function ResumesPage() {
   const activeResume = resumes.find((r) => r.isActive) || resumes[0];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex-1 w-full bg-slate-950">
+      <main className="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Alerts */}
         {notification && (
           <div

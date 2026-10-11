@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { InterviewQuestion } from '../database/entities/interview-question.entity';
 import { Interview, InterviewStatus } from '../database/entities/interview.entity';
-import { StudentProfile } from '../profiles/entities/profile.entity';
+import { StudentProfile } from '../database/entities/student-profile.entity';
 import { Resume } from '../database/entities/resume.entity';
 import { JobRole } from '../database/entities/job-role.entity';
 
@@ -66,24 +66,48 @@ export class QuestionsService {
 
     // Retrieve student profile context
     const profile = await this.profileRepository.findOne({
-      where: { user_id: interview.userId },
+      where: { userId: interview.userId },
     });
 
     // Retrieve resume context if attached
     let resumeSummary: string | null = null;
-    let candidateSkills: string[] = profile?.technical_skills ? JSON.parse(profile.technical_skills) : [];
+    let candidateSkills: string[] = [];
+
+    const skillsJson = profile?.technicalSkills;
+    if (skillsJson) {
+      try {
+        const parsed = typeof skillsJson === 'string' ? JSON.parse(skillsJson) : skillsJson;
+        if (Array.isArray(parsed)) {
+          candidateSkills = parsed;
+        }
+      } catch {
+        candidateSkills = [];
+      }
+    }
 
     if (interview.resumeId) {
       const resume = await this.resumeRepository.findOne({
         where: { id: interview.resumeId },
       });
-      if (resume?.parsedData?.skills) {
-        candidateSkills = Array.from(
-          new Set([...candidateSkills, ...(resume.parsedData.skills || [])]),
-        );
-      }
-      if (resume?.extractedText) {
-        resumeSummary = resume.extractedText.substring(0, 1500);
+      if (resume) {
+        if (resume.parsedData) {
+          let parsed: any = resume.parsedData;
+          if (typeof parsed === 'string') {
+            try {
+              parsed = JSON.parse(parsed);
+            } catch {
+              parsed = null;
+            }
+          }
+          if (parsed?.skills && Array.isArray(parsed.skills)) {
+            candidateSkills = Array.from(
+              new Set([...candidateSkills, ...parsed.skills]),
+            );
+          }
+        }
+        if (resume.extractedText) {
+          resumeSummary = resume.extractedText.substring(0, 1500);
+        }
       }
     }
 
@@ -102,16 +126,21 @@ export class QuestionsService {
         question_number: nextQuestionNumber,
         total_questions: interview.totalQuestions,
         candidate_skills: candidateSkills,
-        experience_level: profile?.experience_level || 'Entry Level',
+        experience_level: profile?.experienceLevel || 'Entry Level',
         resume_summary: resumeSummary,
         previous_questions: previousQuestionTexts,
       };
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const response = await fetch(`${this.aiServiceUrl}/questions/generate-adaptive`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`AI Service returned status ${response.status}`);
@@ -119,10 +148,14 @@ export class QuestionsService {
 
       const resJson = await response.json();
       generatedData = {
-        question: resJson.question,
-        topic: resJson.topic || 'General Technical',
-        expected_points: resJson.expected_points || [],
+        question: resJson.question || resJson.question_text,
+        topic: resJson.topic || resJson.questionCategory || 'General Technical',
+        expected_points: resJson.expected_points || resJson.expected_key_points || [],
       };
+
+      if (!generatedData.question) {
+        throw new Error('AI Service returned empty question');
+      }
     } catch (err) {
       this.logger.warn(`AI Service unavailable (${err.message}), using fallback question generator`);
       generatedData = this.getFallbackQuestion(

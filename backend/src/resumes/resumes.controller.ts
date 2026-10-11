@@ -22,7 +22,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class ResumesController {
   constructor(private readonly resumesService: ResumesService) {}
 
-  @Post()
+  @Post(['', 'upload'])
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
@@ -63,7 +63,7 @@ export class ResumesController {
       'Content-Length': fileData.fileSize,
     });
 
-    fileData.stream.pipe(res);
+    res.send(fileData.buffer);
   }
 
   @Get(':id/status')

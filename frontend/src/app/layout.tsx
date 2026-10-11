@@ -17,12 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white`}>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
             <Navbar />
-            <main>{children}</main>
+            <main className="flex-1 flex flex-col">{children}</main>
           </div>
         </AuthProvider>
       </body>

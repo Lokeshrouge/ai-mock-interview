@@ -22,7 +22,7 @@ export class JobRole {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ name: 'required_skills', type: 'text', array: true, nullable: true })
+  @Column({ name: 'required_skills', type: 'simple-array', nullable: true })
   requiredSkills: string[];
 
   @Column({ type: 'text', nullable: true })

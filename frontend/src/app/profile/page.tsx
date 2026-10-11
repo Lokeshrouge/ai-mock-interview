@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import api from '@/lib/api';
 import {
   User,
@@ -159,23 +158,18 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex items-center space-x-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-            <span>Loading student profile...</span>
-          </div>
+      <div className="flex-1 w-full flex items-center justify-center p-8 bg-slate-950">
+        <div className="flex items-center space-x-3 text-slate-400">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <span>Loading student profile...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex-1 w-full bg-slate-950">
+      <main className="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Alerts */}
         {notification && (
           <div

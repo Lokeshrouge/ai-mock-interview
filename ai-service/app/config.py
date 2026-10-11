@@ -18,6 +18,9 @@ class Settings:
     REQUEST_TIMEOUT: int = 30  # seconds
     MAX_RETRIES: int = 3
     
+    # CORS Configuration
+    cors_origins: list = ["http://localhost:3000", "http://localhost:3001", "*"]
+    
     # Validation
     def validate(self):
         """Validate configuration"""

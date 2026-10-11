@@ -186,5 +186,51 @@ describe('InterviewsService', () => {
       expect(result.currentQuestion).toBeDefined();
       expect(result.currentQuestion?.questionNumber).toBe(1);
     });
+
+    it('should revert state to CREATED and clear startedAt if Question 1 generation fails', async () => {
+      const interview = {
+        id: 'int-err',
+        userId: 'user-1',
+        status: InterviewStatus.CREATED,
+        startedAt: null,
+        totalQuestions: 10,
+        answeredQuestions: 0,
+        questions: [],
+      };
+      mockInterviewRepo.findOne.mockResolvedValue(interview);
+      mockQuestionsService.generateNextQuestion.mockRejectedValueOnce(
+        new Error('AI Service connection refused'),
+      );
+
+      await expect(service.startInterview('user-1', 'int-err')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(interview.status).toBe(InterviewStatus.CREATED);
+      expect(interview.startedAt).toBeNull();
+    });
+
+    it('should return active question if interview is already IN_PROGRESS', async () => {
+      const existingQ = {
+        id: 'q-1',
+        questionNumber: 1,
+        questionText: 'Explain microservices',
+        questionCategory: 'Architecture',
+        expectedPoints: ['Decoupling', 'Independent deployment'],
+      };
+      const interview = {
+        id: 'int-in-progress',
+        userId: 'user-1',
+        status: InterviewStatus.IN_PROGRESS,
+        totalQuestions: 5,
+        answeredQuestions: 0,
+        questions: [existingQ],
+        answers: [],
+      };
+      mockInterviewRepo.findOne.mockResolvedValue(interview);
+
+      const result = await service.startInterview('user-1', 'int-in-progress');
+      expect(result.interview.status).toBe(InterviewStatus.IN_PROGRESS);
+      expect(result.currentQuestion?.id).toBe('q-1');
+    });
   });
 });

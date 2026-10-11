@@ -27,11 +27,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.message
         : 'Internal server error';
 
+    const userMessage = this.getUserMessage(exception);
+
     const errorResponse = {
       success: false,
+      message: userMessage,
       error: {
         code: this.getErrorCode(exception),
-        message: this.getUserMessage(exception),
+        message: userMessage,
         details: this.getDetails(exception),
       },
       timestamp: new Date().toISOString(),

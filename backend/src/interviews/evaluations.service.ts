@@ -97,7 +97,24 @@ export class EvaluationsService {
           feedback = data.detailed_feedback || feedback;
           strengths = data.strengths || strengths;
           weaknesses = data.areas_for_improvement || weaknesses;
+          
+          // Extract coaching data
+          const modelAnswer = data.model_answer || null;
+          const whyBetter = data.why_better || null;
+          const answerFramework = data.answer_framework || null;
+          const keyConcepts = data.key_concepts || null;
+          const studyRecommendations = data.study_recommendations || null;
+          
           aiSuccess = true;
+          
+          // Store coaching data for later use
+          answer['_coaching'] = {
+            modelAnswer,
+            whyBetter,
+            answerFramework,
+            keyConcepts,
+            studyRecommendations,
+          };
         } else {
           throw new Error(`AI service returned status ${response.status}`);
         }
@@ -119,6 +136,9 @@ export class EvaluationsService {
       ((accuracy * 0.35) + (completeness * 0.30) + (clarity * 0.20) + (relevance * 0.15)).toFixed(2),
     );
 
+    // Extract coaching data if available
+    const coaching = answer['_coaching'] || {};
+
     const evaluation = this.evaluationRepository.create({
       answerId: answer.id,
       score: calculatedScore,
@@ -129,6 +149,11 @@ export class EvaluationsService {
       feedback,
       strengths,
       weaknesses,
+      modelAnswer: coaching.modelAnswer || null,
+      whyBetter: coaching.whyBetter || null,
+      answerFramework: coaching.answerFramework || null,
+      keyConcepts: coaching.keyConcepts || null,
+      studyRecommendations: coaching.studyRecommendations || null,
     });
 
     return this.evaluationRepository.save(evaluation);

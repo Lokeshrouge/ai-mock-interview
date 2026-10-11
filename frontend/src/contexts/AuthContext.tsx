@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password });
-    const { accessToken, refreshToken, ...userData } = response.data;
+    // Backend wraps response in {success: true, data: {...}}
+    const responseData = response.data.data || response.data;
+    const { accessToken, refreshToken, ...userData } = responseData;
     
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
@@ -56,7 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       firstName,
       lastName,
     });
-    const { accessToken, refreshToken, ...userData } = response.data;
+    // Backend wraps response in {success: true, data: {...}}
+    const responseData = response.data.data || response.data;
+    const { accessToken, refreshToken, ...userData } = responseData;
     
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);

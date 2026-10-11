@@ -25,9 +25,10 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const { email, password, firstName, lastName } = registerDto;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
     // Check if user exists
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+    const existingUser = await this.userRepository.findOne({ where: { email: normalizedEmail } });
     if (existingUser) {
       throw new ConflictException('Email already registered');
     }
@@ -37,7 +38,7 @@ export class AuthService {
 
     // Create user
     const user = this.userRepository.create({
-      email,
+      email: normalizedEmail,
       passwordHash,
       role: UserRole.STUDENT,
       isActive: true,
@@ -48,8 +49,8 @@ export class AuthService {
     // Create profile
     const profile = this.profileRepository.create({
       userId: user.id,
-      firstName,
-      lastName,
+      firstName: firstName?.trim(),
+      lastName: lastName?.trim(),
     });
 
     await this.profileRepository.save(profile);
@@ -68,9 +69,10 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
     // Find user
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { email: normalizedEmail } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -148,6 +150,27 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  async seedDefaultAdmin() {
+    const adminEmail = 'admin@example.com';
+    const existing = await this.userRepository.findOne({ where: { email: adminEmail } });
+    if (!existing) {
+      const passwordHash = await bcrypt.hash('Admin@123456', 10);
+      const admin = this.userRepository.create({
+        email: adminEmail,
+        passwordHash,
+        role: UserRole.ADMIN,
+        isActive: true,
+      });
+      await this.userRepository.save(admin);
+      const profile = this.profileRepository.create({
+        userId: admin.id,
+        firstName: 'System',
+        lastName: 'Admin',
+      });
+      await this.profileRepository.save(profile);
+    }
   }
 
   async refreshToken(refreshToken: string) {

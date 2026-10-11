@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { InterviewsService } from './interviews.service';
 import { AnswersService } from './answers.service';
+import { RevisedAnswersService, SubmitRevisedAnswerDto } from './revised-answers.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { SubmitAnswerDto } from './dto/submit-answer.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -22,6 +23,7 @@ export class InterviewsController {
   constructor(
     private readonly interviewsService: InterviewsService,
     private readonly answersService: AnswersService,
+    private readonly revisedAnswersService: RevisedAnswersService,
   ) {}
 
   @Post()
@@ -71,5 +73,33 @@ export class InterviewsController {
     @Query('status') status?: string,
   ) {
     return this.interviewsService.findAll(user.userId, page, limit, status);
+  }
+
+  @Post('answers/:answerId/revisions')
+  submitRevision(
+    @CurrentUser() user: any,
+    @Param('answerId') answerId: string,
+    @Body() body: { revisedText: string },
+  ) {
+    return this.revisedAnswersService.submitRevisedAnswer({
+      answerId,
+      revisedText: body.revisedText,
+    });
+  }
+
+  @Get('answers/:answerId/revisions')
+  getRevisions(
+    @CurrentUser() user: any,
+    @Param('answerId') answerId: string,
+  ) {
+    return this.revisedAnswersService.getRevisionsByAnswer(answerId);
+  }
+
+  @Get('revisions/:revisionId')
+  getRevision(
+    @CurrentUser() user: any,
+    @Param('revisionId') revisionId: string,
+  ) {
+    return this.revisedAnswersService.getRevisionById(revisionId);
   }
 }

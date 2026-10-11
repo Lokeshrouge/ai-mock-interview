@@ -3,14 +3,11 @@ import Link from 'next/link';
 import {
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   Award,
   FileText,
-  Clock,
   Cpu,
   CheckCircle2,
   BarChart2,
-  Briefcase,
   Zap,
 } from 'lucide-react';
 
@@ -27,7 +24,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="flex-1 w-full bg-slate-950 flex flex-col selection:bg-indigo-500 selection:text-white">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-700 text-white text-xs py-2 px-4 text-center font-medium shadow-sm">
         <span className="inline-flex items-center gap-1.5">
@@ -209,7 +206,7 @@ export default function HomePage() {
       <section className="py-12 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-6 text-center">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Trained for 10+ Modern Engineering Specializations
+            Trained for 8+ Modern Engineering Specializations
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-4xl mx-auto">
             {roles.map((role, idx) => (
@@ -248,7 +245,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-8 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
         <p>AI-Powered Mock Interview & Candidate Performance Evaluation System</p>
-        <p>B.Sc. Computer Science Final Year Project • Next.js 14, NestJS 10, FastAPI & PostgreSQL</p>
+        <p>B.Sc. Computer Science Final Year Project • Next.js 14, NestJS 10, FastAPI & SQLite</p>
       </footer>
     </div>
   );

@@ -11,9 +11,13 @@ import {
 import { User } from './user.entity';
 
 export enum ResumeProcessingStatus {
+  UPLOADING = 'UPLOADING',
   UPLOADED = 'UPLOADED',
+  EXTRACTING = 'EXTRACTING',
   PROCESSING = 'PROCESSING',
+  ANALYZING = 'ANALYZING',
   PROCESSED = 'PROCESSED',
+  PARTIALLY_PROCESSED = 'PARTIALLY_PROCESSED',
   FAILED = 'FAILED',
 }
 

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
 import api from '@/lib/api';
+import CompanySelector from '@/components/CompanySelector';
 import {
   Briefcase,
   Layers,
@@ -16,6 +16,9 @@ import {
   Loader2,
   FileText,
   Search,
+  Building2,
+  User,
+  Target,
 } from 'lucide-react';
 
 interface JobRole {
@@ -42,6 +45,14 @@ export default function InterviewSetupPage() {
   const [interviewType, setInterviewType] = useState<'HR' | 'TECHNICAL' | 'PROJECT'>('TECHNICAL');
   const [difficulty, setDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
   const [questionCount, setQuestionCount] = useState<number>(10);
+
+  // Company Selection State
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [customCompany, setCustomCompany] = useState<string>('');
+  const [targetRole, setTargetRole] = useState<string>('');
+  const [experienceLevel, setExperienceLevel] = useState<string>('');
+  const [interviewRound, setInterviewRound] = useState<string>('');
+  const [jobDescription, setJobDescription] = useState<string>('');
 
   useEffect(() => {
     fetchPrerequisites();
@@ -75,6 +86,8 @@ export default function InterviewSetupPage() {
   };
 
   const handleStartInterview = async () => {
+    if (submitting) return;
+
     if (!selectedRole) {
       setError('Please select a target job role');
       return;
@@ -84,24 +97,37 @@ export default function InterviewSetupPage() {
       setSubmitting(true);
       setError(null);
 
-      // 1. Create Interview
+      // 1. Create Interview Session
       const createRes = await api.post('/interviews', {
         jobRoleId: selectedRole,
         resumeId: activeResume?.id || undefined,
         interviewType,
         difficulty,
         questionCount,
+        targetCompany: selectedCompany === 'Other' ? customCompany : selectedCompany,
+        targetRole: targetRole || selectedRoleObj?.title,
+        experienceLevel,
+        interviewRound,
+        jobDescription,
       });
 
-      const interviewId = createRes.data.data.id;
+      const interviewId = createRes.data?.data?.id || createRes.data?.id;
+      if (!interviewId) {
+        throw new Error('Interview was created but no session ID was returned by the server.');
+      }
 
-      // 2. Start Interview (generates Question #1)
+      // 2. Start Interview (initializes session and generates Question #1)
       await api.post(`/interviews/${interviewId}/start`);
 
       // 3. Navigate to Interview Room
       router.push(`/interview/${interviewId}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to start interview session.');
+      const detailedMessage =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to start interview session.';
+      setError(detailedMessage);
       setSubmitting(false);
     }
   };
@@ -115,23 +141,18 @@ export default function InterviewSetupPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex items-center space-x-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-            <span>Loading interview configurations...</span>
-          </div>
+      <div className="flex-1 w-full flex items-center justify-center p-8 bg-slate-950">
+        <div className="flex items-center space-x-3 text-slate-400">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <span>Loading interview configurations...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex-1 w-full bg-slate-950">
+      <main className="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -154,6 +175,103 @@ export default function InterviewSetupPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Configuration Controls (Left 2 cols) */}
           <div className="lg:col-span-2 space-y-8">
+            {/* 0. Company Selection */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <CompanySelector
+                selectedCompany={selectedCompany}
+                onCompanyChange={setSelectedCompany}
+                customCompany={customCompany}
+                onCustomCompanyChange={setCustomCompany}
+              />
+
+              {/* Additional Company Details */}
+              {selectedCompany && (
+                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                  <h4 className="font-semibold text-sm text-slate-700 dark:text-slate-300">
+                    Interview Details
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Target Role */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                        <User className="w-3.5 h-3.5 inline mr-1" />
+                        Target Job Title
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Senior Software Engineer"
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    {/* Experience Level */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                        <Target className="w-3.5 h-3.5 inline mr-1" />
+                        Experience Level
+                      </label>
+                      <select
+                        value={experienceLevel}
+                        onChange={(e) => setExperienceLevel(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="">Select level...</option>
+                        <option value="Fresher">Fresher (0-1 years)</option>
+                        <option value="Intern">Intern</option>
+                        <option value="Junior">Junior (1-3 years)</option>
+                        <option value="Mid-Level">Mid-Level (3-5 years)</option>
+                        <option value="Senior">Senior (5-8 years)</option>
+                        <option value="Lead">Lead (8+ years)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Interview Round */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                      Interview Round
+                    </label>
+                    <select
+                      value={interviewRound}
+                      onChange={(e) => setInterviewRound(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">Select round...</option>
+                      <option value="Screening">Initial Screening</option>
+                      <option value="Technical Round 1">Technical Round 1</option>
+                      <option value="Technical Round 2">Technical Round 2</option>
+                      <option value="Coding Assessment">Coding Assessment</option>
+                      <option value="System Design">System Design</option>
+                      <option value="Behavioral">Behavioral / HR</option>
+                      <option value="Managerial">Managerial Round</option>
+                      <option value="Final">Final Round</option>
+                    </select>
+                  </div>
+
+                  {/* Job Description */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                      <FileText className="w-3.5 h-3.5 inline mr-1" />
+                      Job Description (Optional)
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder="Paste the job description here to get more tailored questions..."
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      AI will analyze this to generate role-specific questions
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* 1. Job Role Selection */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -320,12 +438,39 @@ export default function InterviewSetupPage() {
               </h3>
 
               <div className="space-y-3 text-sm">
+                {selectedCompany && (
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500">Target Company</span>
+                    <span className="font-semibold text-slate-900 dark:text-white text-right max-w-[150px] truncate">
+                      {selectedCompany === 'Other' ? customCompany : selectedCompany}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-slate-500">Target Role</span>
                   <span className="font-semibold text-slate-900 dark:text-white text-right">
-                    {selectedRoleObj?.title || 'None Selected'}
+                    {targetRole || selectedRoleObj?.title || 'None Selected'}
                   </span>
                 </div>
+
+                {experienceLevel && (
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500">Experience</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {experienceLevel}
+                    </span>
+                  </div>
+                )}
+
+                {interviewRound && (
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-500">Round</span>
+                    <span className="font-semibold text-slate-900 dark:text-white text-right text-xs">
+                      {interviewRound}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-slate-500">Interview Type</span>

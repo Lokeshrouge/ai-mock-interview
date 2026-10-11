@@ -1,0 +1,73 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: mock-interview-db
+    plan: starter
+    databaseName: mock_interview
+    databaseUser: mock_interview_user
+    ipAllowList: []
+
+  # Backend API
+  - type: web
+    name: mock-interview-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mock-interview-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: mock-interview-ai-service
+          property: host
+      - key: FILE_UPLOAD_MAX_SIZE
+        value: 5242880
+      - key: UPLOAD_STORAGE_TYPE
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://mock-interview.vercel.app
+    autoDeploy: true
+
+  # AI Service
+  - type: web
+    name: mock-interview-ai-service
+    runtime: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: starter
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: MAX_WORKERS
+        value: 4
+      - key: LOG_LEVEL
+        value: INFO
+    autoDeploy: true

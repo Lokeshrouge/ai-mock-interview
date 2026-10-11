@@ -73,6 +73,11 @@ export class InterviewsService {
       status: InterviewStatus.CREATED,
       totalQuestions: questionCount,
       answeredQuestions: 0,
+      targetCompany: dto.targetCompany,
+      targetRole: dto.targetRole,
+      experienceLevel: dto.experienceLevel,
+      interviewRound: dto.interviewRound,
+      jobDescription: dto.jobDescription,
     });
 
     const saved = await this.interviewRepository.save(interview);
@@ -146,9 +151,12 @@ export class InterviewsService {
     if (!interview.questions || interview.questions.length === 0) {
       currentQuestion = await this.questionsService.generateNextQuestion(interviewId);
     } else {
-      // Pick the currently active unanswered question
+      // Pick the currently active unanswered question (ordered by question number)
+      const sortedQuestions = [...(interview.questions || [])].sort(
+        (a, b) => a.questionNumber - b.questionNumber,
+      );
       const answeredQIds = new Set((interview.answers || []).map((a) => a.questionId));
-      currentQuestion = interview.questions.find((q) => !answeredQIds.has(q.id)) || null;
+      currentQuestion = sortedQuestions.find((q) => !answeredQIds.has(q.id)) || null;
 
       // If all generated questions answered but totalQuestions not reached, generate next
       if (!currentQuestion && interview.answeredQuestions < interview.totalQuestions) {
@@ -325,6 +333,7 @@ export class InterviewsService {
 
     // Sort Q&As by question number
     const qaBreakdown = (interview.answers || []).map((ans) => ({
+      answerId: ans.id,  // ADDED: For Try Again feature
       questionNumber: ans.question?.questionNumber || 1,
       questionText: ans.question?.questionText || '',
       questionCategory: ans.question?.questionCategory || 'General',
@@ -341,6 +350,12 @@ export class InterviewsService {
             feedback: ans.evaluation.feedback,
             strengths: ans.evaluation.strengths || [],
             weaknesses: ans.evaluation.weaknesses || [],
+            // Coaching fields
+            modelAnswer: ans.evaluation.modelAnswer || null,
+            whyBetter: ans.evaluation.whyBetter || null,
+            answerFramework: ans.evaluation.answerFramework || null,
+            keyConcepts: ans.evaluation.keyConcepts || [],
+            studyRecommendations: ans.evaluation.studyRecommendations || [],
           }
         : null,
     })).sort((a, b) => a.questionNumber - b.questionNumber);
@@ -356,6 +371,10 @@ export class InterviewsService {
       answeredQuestions: interview.answeredQuestions,
       startedAt: interview.startedAt,
       completedAt: interview.completedAt,
+      targetCompany: interview.targetCompany,
+      targetRole: interview.targetRole,
+      experienceLevel: interview.experienceLevel,
+      interviewRound: interview.interviewRound,
       recommendations: recommendation
         ? {
             overallFeedback: recommendation.overallFeedback,

@@ -49,22 +49,22 @@ describe('ProfilesService', () => {
   it('should return profile with completion details when found', async () => {
     mockProfileRepo.findOne.mockResolvedValue({
       id: 'prof-1',
-      user_id: 'user-1',
-      first_name: 'John',
-      last_name: 'Doe',
+      userId: 'user-1',
+      firstName: 'John',
+      lastName: 'Doe',
       phone: '1234567890',
-      target_role: 'Fullstack Developer',
-      experience_level: 'MID',
+      targetRole: 'Fullstack Developer',
+      experienceLevel: 'MID',
       education: JSON.stringify({
         college: 'Test University',
         degree: 'B.Sc.',
         department: 'CS',
         graduationYear: 2025,
       }),
-      technical_skills: JSON.stringify(['Node.js', 'React']),
-      programming_languages: JSON.stringify(['TypeScript']),
-      tools_technologies: JSON.stringify(['Git', 'Docker']),
-      career_interests: JSON.stringify(['Web Development']),
+      technicalSkills: JSON.stringify(['Node.js', 'React']),
+      programmingLanguages: JSON.stringify(['TypeScript']),
+      toolsTechnologies: JSON.stringify(['Git', 'Docker']),
+      careerInterests: JSON.stringify(['Web Development']),
     });
 
     mockUserRepo.findOne.mockResolvedValue({
@@ -95,9 +95,12 @@ describe('ProfilesService', () => {
   it('should update profile fields and return updated profile', async () => {
     const existing = {
       id: 'prof-1',
-      user_id: 'user-1',
-      first_name: 'John',
-      last_name: 'Doe',
+      userId: 'user-1',
+      firstName: 'John',
+      lastName: 'Doe',
+      phone: '1234567890',
+      targetRole: 'Developer',
+      experienceLevel: 'MID',
     };
     mockProfileRepo.findOne.mockResolvedValue(existing);
     mockUserRepo.findOne.mockResolvedValue({ id: 'user-1', email: 'john@example.com' });
@@ -117,8 +120,8 @@ describe('ProfilesService', () => {
 
   it('should calculate 100% completion when all 5 dimensions are satisfied', () => {
     const profile = {
-      first_name: 'Alice',
-      last_name: 'Smith',
+      firstName: 'Alice',
+      lastName: 'Smith',
       phone: '9876543210',
       education: JSON.stringify({
         college: 'MIT',
@@ -126,10 +129,10 @@ describe('ProfilesService', () => {
         department: 'CS',
         graduationYear: 2024,
       }),
-      target_role: 'Data Scientist',
-      experience_level: 'SENIOR',
-      technical_skills: ['Python', 'PyTorch'],
-      programming_languages: ['Python'],
+      targetRole: 'Data Scientist',
+      experienceLevel: 'SENIOR',
+      technicalSkills: JSON.stringify(['Python', 'PyTorch']),
+      programmingLanguages: JSON.stringify(['Python']),
     } as any;
 
     const completion = service.calculateCompletion(profile, true);
@@ -145,14 +148,14 @@ describe('ProfilesService', () => {
 
   it('should calculate partial completion and list missing sections accurately', () => {
     const incompleteProfile = {
-      first_name: 'Bob',
-      last_name: 'Lee',
+      firstName: 'Bob',
+      lastName: 'Lee',
       phone: '1112223333',
       education: null,
-      target_role: null,
-      experience_level: null,
-      technical_skills: null,
-      programming_languages: null,
+      targetRole: null,
+      experienceLevel: null,
+      technicalSkills: null,
+      programmingLanguages: null,
     } as any;
 
     const completion = service.calculateCompletion(incompleteProfile, false);

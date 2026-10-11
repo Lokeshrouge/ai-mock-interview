@@ -13,7 +13,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     TypeOrmModule.forFeature([User, StudentProfile]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev_jwt_secret_key_change_in_production',
+      secret: process.env.JWT_SECRET || 'super_secret_jwt_key_mock_interview_development_only',
       signOptions: {
         expiresIn: process.env.JWT_EXPIRES_IN || '15m',
       },

@@ -82,3 +82,20 @@ Desktop.ini
 *.db-journal
 *.sqlite
 *.sqlite3
+
+# Production secrets and credentials
+.env.production
+.env.staging
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Agent artifacts (preserve)
+.agents/

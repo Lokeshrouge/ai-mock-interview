@@ -70,3 +70,10 @@ class EvaluateAnswerResponse(BaseModel):
     areas_for_improvement: List[str]
     model_answer_summary: str
     detailed_feedback: str
+    # Coaching fields for "How You Should Answer"
+    model_answer: str = Field(default="", description="Full example answer for this question")
+    why_better: str = Field(default="", description="Why the model answer is stronger")
+    answer_framework: str = Field(default="", description="Answer structure framework (e.g. STAR)")
+    key_concepts: List[str] = Field(default_factory=list, description="Essential points to include")
+    study_recommendations: List[str] = Field(default_factory=list, description="Topics to study")
+

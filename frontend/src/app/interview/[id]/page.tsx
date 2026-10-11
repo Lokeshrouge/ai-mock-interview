@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
 import api from '@/lib/api';
+import VoiceControls from '@/components/VoiceControls';
 import {
   Clock,
   Sparkles,
@@ -91,7 +91,12 @@ export default function InterviewRoomPage() {
           setIsFinished(true);
         }
       } catch (fErr: any) {
-        setError(fErr.response?.data?.message || 'Failed to load interview session.');
+        setError(
+          fErr.response?.data?.error?.message ||
+          fErr.response?.data?.message ||
+          fErr.message ||
+          'Failed to load interview session.',
+        );
       }
     } finally {
       setLoading(false);
@@ -147,13 +152,10 @@ export default function InterviewRoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex items-center space-x-3 text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-            <span>Connecting to AI interview room...</span>
-          </div>
+      <div className="flex-1 w-full flex items-center justify-center p-8 bg-slate-950">
+        <div className="flex items-center space-x-3 text-slate-400">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <span>Connecting to AI interview room...</span>
         </div>
       </div>
     );
@@ -164,10 +166,8 @@ export default function InterviewRoomPage() {
   const progressPercent = Math.min(100, Math.round((answeredCount / totalCount) * 100));
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Navbar />
-
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="flex-1 w-full bg-slate-950">
+      <main className="max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Top Header & Session Bar */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -305,6 +305,17 @@ export default function InterviewRoomPage() {
 
             {/* Answer Input Box */}
             <form onSubmit={handleSubmitAnswer} className="space-y-4">
+              {/* Voice Controls */}
+              {activeQuestion && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <VoiceControls
+                    questionText={activeQuestion.questionText}
+                    onTranscriptChange={setAnswerText}
+                    currentTranscript={answerText}
+                  />
+                </div>
+              )}
+
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <label className="font-semibold text-slate-700 dark:text-slate-300">

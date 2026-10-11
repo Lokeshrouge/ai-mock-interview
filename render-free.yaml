@@ -1,0 +1,68 @@
+# Render Free Tier Configuration
+# NOTE: Free web services spin down after 15 mins of inactivity (cold starts ~1 min)
+# Free PostgreSQL is NOT available on Render - use Neon or Supabase instead
+
+services:
+  # Backend API - Free Tier (spins down after inactivity)
+  - type: web
+    name: mock-interview-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false  # Must set manually - from Neon or Supabase
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: mock-interview-ai-service
+          property: host
+      - key: FILE_UPLOAD_MAX_SIZE
+        value: 5242880
+      - key: UPLOAD_STORAGE_TYPE
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false  # Set to Vercel URL after frontend deployment
+    autoDeploy: true
+
+  # AI Service - Free Tier (spins down after inactivity)
+  - type: web
+    name: mock-interview-ai-service
+    runtime: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: AI_PROVIDER
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Must set manually
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: MAX_WORKERS
+        value: 1  # Limited to 1 for free tier
+      - key: LOG_LEVEL
+        value: INFO
+    autoDeploy: true
+
