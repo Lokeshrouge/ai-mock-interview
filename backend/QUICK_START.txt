@@ -1,0 +1,53 @@
+═══════════════════════════════════════════════════════════════════════
+  NEON POSTGRESQL MIGRATION - QUICK START
+═══════════════════════════════════════════════════════════════════════
+
+STEP 1: ADD CONNECTION STRING
+─────────────────────────────────────────────────────────────────────
+
+File: backend\.env
+
+Action: Replace this line:
+  DATABASE_URL=sqlite:./mock_interview.db
+
+With these lines:
+  # SQLite (backup)
+  # DATABASE_URL=sqlite:./mock_interview.db
+  
+  # Neon PostgreSQL
+  DATABASE_URL=postgresql://[YOUR-CONNECTION-STRING]
+
+Save the file.
+
+─────────────────────────────────────────────────────────────────────
+
+STEP 2: TELL THE AGENT
+─────────────────────────────────────────────────────────────────────
+
+Type in chat:
+  "Connection string added, proceed with verification"
+
+─────────────────────────────────────────────────────────────────────
+
+WHAT HAPPENS NEXT:
+─────────────────────────────────────────────────────────────────────
+
+✅ Agent tests Neon connection (no changes to SQLite)
+✅ Agent creates timestamped backup
+✅ Agent fixes entity types for PostgreSQL
+✅ Agent generates database schema in Neon
+✅ Agent exports SQLite data to JSON
+✅ Agent shows you final plan and WAITS for approval
+⏸️ YOU APPROVE before any data is imported
+
+─────────────────────────────────────────────────────────────────────
+
+SECURITY:
+─────────────────────────────────────────────────────────────────────
+
+✅ .env is gitignored (won't be committed)
+✅ Credentials never printed to console
+✅ Only stored locally on your machine
+✅ SQLite backup preserved for rollback
+
+═══════════════════════════════════════════════════════════════════════

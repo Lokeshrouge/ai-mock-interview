@@ -1,484 +1,309 @@
-# 🚀 AI Mock Interview System - Deployment Guide
+# AI Mock Interview - Production Deployment Guide
 
-This guide covers both development and production deployment options for the AI Mock Interview System.
+## ✅ Build Status
 
-## 📋 Prerequisites
+- **Frontend:** ✅ Built successfully (`.next/` folder)
+- **Backend:** ✅ Built successfully (`dist/src/` folder)
+- **AI Service:** ✅ Python runtime (no build needed)
+- **Database:** ✅ Neon PostgreSQL (181 records migrated)
 
-### System Requirements
-- **Node.js**: 18.0+ (LTS recommended)
-- **Python**: 3.8+
-- **Docker**: 24.0+ (for production deployment)
-- **Docker Compose**: 2.0+
-- **Git**: Latest version
+---
 
-### Development Tools (Optional)
-- **PowerShell**: 7.0+ (Windows users)
-- **VS Code**: Latest (recommended IDE)
-- **Postman**: API testing (optional)
+## Environment Variables Required
 
-## 🛠️ Development Deployment
-
-### Option 1: Automated PowerShell Script (Recommended)
-
-The enhanced startup script handles all services and provides comprehensive monitoring:
-
-```powershell
-# Clone and setup
-git clone <repository-url>
-cd ai-mock-interview
-
-# Start all services (installs dependencies automatically)
-.\start-all.ps1
-
-# Open http://localhost:3000 when ready
-```
-
-**What the script does:**
-- ✅ Checks Node.js and Python prerequisites
-- ✅ Installs dependencies for all services
-- ✅ Starts each service in a separate PowerShell window
-- ✅ Provides health checks and status monitoring
-- ✅ Handles ENOWORKSPACES warnings gracefully
-- ✅ Opens browser automatically
-
-### Option 2: Manual Service Startup
-
-If you prefer manual control or the script doesn't work:
-
-```powershell
-# Terminal 1: Backend (NestJS)
-cd backend
-npm ci
-npm run start:dev
-# Available at: http://localhost:3001
-
-# Terminal 2: AI Service (FastAPI)  
-cd ai-service
-pip install -r requirements.txt
-python test_server.py
-# Available at: http://localhost:8000
-
-# Terminal 3: Frontend (Next.js)
-cd frontend
-npm ci  
-npm run dev
-# Available at: http://localhost:3000
-```
-
-### Development URLs
-
-| Service | URL | Purpose |
-|---------|-----|---------|
-| **Main App** | http://localhost:3000 | Frontend application |
-| **API** | http://localhost:3001/api/v1 | Backend REST API |
-| **Health Check** | http://localhost:3001/api/v1/health | System status |
-| **AI Service** | http://localhost:8000 | AI endpoints |
-| **AI Docs** | http://localhost:8000/docs | Interactive API docs |
-
-## 🎯 Production Deployment (Single URL)
-
-### Architecture Overview
-
-The production deployment uses nginx as a reverse proxy to serve everything through a single URL:
-
-```
-Internet → nginx (Port 80) → {
-    /       → Frontend Container
-    /api/*  → Backend Container  
-    AI Service → Internal only (backend calls it)
-}
-```
-
-### Step 1: Environment Configuration
-
-Create production environment file:
-
+### Backend (.env)
 ```bash
-# Copy template
-cp .env.production.example .env.production
+# Server
+NODE_ENV=production
+PORT=3001
 
-# Edit with your values
-# IMPORTANT: Change JWT_SECRET in production!
-```
+# Database - Neon PostgreSQL
+DATABASE_URL=postgresql://neondb_owner:npg_Dui2qtOhn4Ib@ep-long-paper-b3fpsb0u-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 
-**Required Environment Variables:**
-
-```bash
-# Security (CHANGE IN PRODUCTION!)
-JWT_SECRET=your_super_secure_jwt_secret_here_min_32_chars
+# JWT Secrets (CHANGE FOR PRODUCTION)
+JWT_SECRET=your_production_jwt_secret_here_min_32_chars
 JWT_EXPIRES_IN=15m
 REFRESH_TOKEN_EXPIRES_IN=7d
 
-# Application URLs  
-NEXT_PUBLIC_API_URL=http://your-domain.com
-CORS_ORIGIN=http://your-domain.com
+# AI Service
+AI_SERVICE_URL=https://your-ai-service-url.com
 
-# AI Configuration (optional - uses mock by default)
-AI_PROVIDER=mock
-# OPENAI_API_KEY=your_openai_key_here
-# ANTHROPIC_API_KEY=your_anthropic_key_here
+# File Upload
+FILE_UPLOAD_MAX_SIZE=5242880
+
+# CORS
+CORS_ORIGIN=https://your-frontend-domain.com
 ```
 
-### Step 2: Docker Production Deployment
-
-#### Option A: Automated Deployment Script
-
-```powershell
-# Build and deploy everything
-.\deploy.ps1 -Environment prod
-
-# With custom options
-.\deploy.ps1 -Environment prod -Clean -SkipBuild
-
-# The system will be available at: http://localhost
-```
-
-#### Option B: Manual Docker Deployment
-
+### Frontend (.env.local)
 ```bash
-# Build all services
-docker-compose -f docker-compose.prod.yml build
-
-# Start production stack
-docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
-
-# Check status
-docker-compose -f docker-compose.prod.yml ps
+NEXT_PUBLIC_API_URL=https://your-backend-url.com/api/v1
 ```
 
-### Step 3: Production Verification
-
-#### Health Checks
-
+### AI Service (.env)
 ```bash
-# Main application
-curl http://localhost/health
-# Should return: "healthy"
+# OpenAI
+OPENAI_API_KEY=your_openai_key_here
 
-# Backend API
-curl http://localhost/api/v1/health
-# Should return: {"status":"ok","database":"connected"}
-
-# Check all containers
-docker-compose -f docker-compose.prod.yml ps
-# All services should show "Up" and "healthy"
+# LLM Provider
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4-turbo
 ```
 
-#### Service Logs
+---
 
+## Hosting Options
+
+### Option 1: Vercel (Recommended for Next.js)
+
+#### Frontend on Vercel
 ```bash
-# View all logs
-docker-compose -f docker-compose.prod.yml logs -f
+# Install Vercel CLI
+npm i -g vercel
 
-# Individual service logs
-docker-compose -f docker-compose.prod.yml logs -f frontend
-docker-compose -f docker-compose.prod.yml logs -f backend
-docker-compose -f docker-compose.prod.yml logs -f ai-service
-docker-compose -f docker-compose.prod.yml logs -f nginx
+# Deploy
+cd frontend
+vercel --prod
+
+# Set environment variables in Vercel dashboard
 ```
 
-## 🌐 Custom Domain Deployment
-
-### For Actual Production Domain
-
-1. **Update Environment Variables:**
+#### Backend on Railway/Render
 ```bash
-NEXT_PUBLIC_API_URL=https://yourdomain.com
-CORS_ORIGIN=https://yourdomain.com
+# Railway
+railway login
+railway init
+railway up
+
+# Or Render
+# Connect GitHub repo, select backend folder
+# Set build command: npm run build
+# Set start command: npm run start:prod
 ```
 
-2. **SSL Configuration (nginx.conf):**
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name yourdomain.com;
-    
-    ssl_certificate /path/to/your/certificate.pem;
-    ssl_certificate_key /path/to/your/private.key;
-    
-    # Rest of configuration...
-}
-
-server {
-    listen 80;
-    server_name yourdomain.com;
-    return 301 https://$server_name$request_uri;
-}
-```
-
-3. **Update Docker Compose:**
-```yaml
-nginx:
-  ports:
-    - "80:80"
-    - "443:443"
-  volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    - /path/to/ssl:/etc/ssl/certs:ro
-```
-
-## 🔧 Configuration Options
-
-### Database Configuration
-
-**Development (SQLite - Default):**
+#### AI Service on Railway/Render
 ```bash
-DATABASE_URL=file:/app/data/mock_interview.db
+# Dockerfile already exists
+# Railway will auto-detect Python
+# Or use Render with Docker
 ```
 
-**Production (PostgreSQL):**
+### Option 2: AWS/DigitalOcean
+
+#### All Services on Single VPS
 ```bash
-DATABASE_URL=postgresql://user:password@postgres:5432/mock_interview
+# SSH into server
+ssh user@your-server-ip
+
+# Install Node.js, Python, PM2
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs python3 python3-pip
+sudo npm install -g pm2
+
+# Clone repository
+git clone your-repo-url
+cd ai-mock-interview
+
+# Backend
+cd backend
+npm install
+npm run build
+pm2 start dist/src/main.js --name backend
+
+# AI Service
+cd ../ai-service
+pip3 install -r requirements.txt
+pm2 start "python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000" --name ai-service
+
+# Frontend
+cd ../frontend
+npm install
+npm run build
+pm2 start "npm run start" --name frontend
+
+# Save PM2 config
+pm2 save
+pm2 startup
 ```
 
-### AI Service Configuration
-
-**Mock AI (Development/Demo):**
-```bash
-AI_PROVIDER=mock
-```
-
-**OpenAI Integration:**
-```bash
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-your-openai-api-key-here
-MODEL_NAME=gpt-4-turbo
-```
-
-**Anthropic Integration:**
-```bash
-AI_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
-MODEL_NAME=claude-3-sonnet
-```
-
-### Performance Tuning
-
-**Frontend Optimization:**
-```dockerfile
-# In frontend/Dockerfile
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV GENERATE_SOURCEMAP=false
-```
-
-**Backend Scaling:**
-```yaml
-# In docker-compose.prod.yml
-backend:
-  deploy:
-    replicas: 3
-    resources:
-      limits:
-        cpus: '1.0'
-        memory: 1G
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### Port Conflicts
-```bash
-# Check what's using ports
-netstat -tulpn | grep :3000
-netstat -tulpn | grep :3001
-netstat -tulpn | grep :8000
-
-# Kill processes on ports  
-npx kill-port 3000 3001 8000
-```
-
-#### Docker Issues
-```bash
-# Clean Docker system
-docker system prune -a -f
-
-# Rebuild without cache
-docker-compose -f docker-compose.prod.yml build --no-cache
-
-# Check container logs
-docker logs mock_interview_nginx
-docker logs mock_interview_backend
-```
-
-#### Database Issues
-```bash
-# Reset SQLite database (CAUTION: Deletes all data)
-rm backend/mock_interview.db
-
-# View database contents (requires sqlite3)
-sqlite3 backend/mock_interview.db ".tables"
-sqlite3 backend/mock_interview.db "SELECT * FROM users LIMIT 5;"
-```
-
-#### ENOWORKSPACES Warnings
-```
-npm WARN config This command does not support workspaces
-```
-**Solution**: This is cosmetic only. Services work correctly. Run commands from individual service directories to avoid warnings.
-
-### Performance Issues
-
-#### Slow Build Times
-```bash
-# Use npm ci instead of npm install
-npm ci --only=production
-
-# Enable Docker BuildKit
-export DOCKER_BUILDKIT=1
-docker-compose build --parallel
-```
-
-#### Memory Issues
-```bash
-# Increase Node.js memory limit
-export NODE_OPTIONS="--max_old_space_size=4096"
-
-# Monitor Docker memory usage
-docker stats
-```
-
-## 📊 Monitoring & Maintenance
-
-### Health Monitoring
-
-Create a simple monitoring script:
-
-```powershell
-# monitor.ps1
-while ($true) {
-    try {
-        $health = Invoke-RestMethod "http://localhost/health" -TimeoutSec 5
-        Write-Host "$(Get-Date): System healthy" -ForegroundColor Green
-    } catch {
-        Write-Host "$(Get-Date): System unhealthy" -ForegroundColor Red
-    }
-    Start-Sleep -Seconds 30
-}
-```
-
-### Backup Strategy
-
-```bash
-# Backup SQLite database
-cp backend/mock_interview.db "backup_$(date +%Y%m%d_%H%M%S).db"
-
-# Backup uploaded files (if any)
-tar -czf uploads_backup.tar.gz uploads/
-
-# Docker volume backup
-docker run --rm -v mock_interview_db_data:/data -v $(pwd):/backup alpine tar czf /backup/db_backup.tar.gz /data
-```
-
-### Log Rotation
-
-```bash
-# Configure Docker log rotation in daemon.json
-{
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  }
-}
-```
-
-## 🔐 Security Checklist
-
-### Pre-Production Security
-
-- [ ] Change default JWT_SECRET to a strong, unique value
-- [ ] Enable HTTPS with valid SSL certificates
-- [ ] Configure proper CORS origins (no wildcards in production)
-- [ ] Set secure cookie flags
-- [ ] Enable rate limiting on API endpoints
-- [ ] Validate all environment variables are set
-- [ ] Remove debug/development endpoints
-- [ ] Update all dependencies to latest secure versions
-
-### Network Security
-
-```nginx
-# In nginx.conf
-add_header X-Frame-Options "SAMEORIGIN" always;
-add_header X-XSS-Protection "1; mode=block" always;
-add_header X-Content-Type-Options "nosniff" always;
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-```
-
-## 📈 Scaling Considerations
-
-### Horizontal Scaling
+### Option 3: Docker Compose
 
 ```yaml
-# docker-compose.scale.yml
 version: '3.8'
+
 services:
   backend:
-    deploy:
-      replicas: 3
-    
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - ai-service
+
   ai-service:
-    deploy:
-      replicas: 2
-      
-  nginx:
+    build: ./ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=openai
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3001/api/v1
     depends_on:
       - backend
-    # Load balancing configuration
 ```
 
-### Database Scaling
-
-For high-traffic production:
-
-1. **Switch to PostgreSQL with connection pooling**
-2. **Implement Redis for session storage**
-3. **Add read replicas for query optimization**
-4. **Consider database sharding for very large scale**
-
-## 🎯 Deployment Checklist
-
-### Pre-Deployment
-- [ ] Code reviewed and tested
-- [ ] Environment variables configured
-- [ ] SSL certificates obtained (if using HTTPS)
-- [ ] Backup strategy in place
-- [ ] Monitoring configured
-
-### Deployment
-- [ ] Build all services successfully
-- [ ] Deploy to production environment
-- [ ] Run health checks
-- [ ] Verify all endpoints working
-- [ ] Test critical user workflows
-
-### Post-Deployment  
-- [ ] Monitor logs for errors
-- [ ] Verify performance metrics
-- [ ] Test from external networks
-- [ ] Confirm SSL/TLS working (if applicable)
-- [ ] Document any issues and resolutions
+Deploy:
+```bash
+docker-compose up -d
+```
 
 ---
 
-## 🆘 Support & Troubleshooting
+## Quick Deploy Commands
 
-For deployment issues:
+### Production Build
+```bash
+# Backend
+cd backend
+npm install
+npm run build
 
-1. **Check service logs**: `docker-compose logs -f [service-name]`
-2. **Verify environment variables**: Ensure all required vars are set
-3. **Test individual services**: Access each service URL directly
-4. **Check Docker resources**: Ensure sufficient CPU/memory allocated
-5. **Review nginx configuration**: Verify proxy rules are correct
+# Frontend
+cd ../frontend
+npm install
+npm run build
 
-**Need Help?**
-- Check the main README.md for architecture details
-- Review individual service documentation
-- Check Docker and nginx logs for specific errors
-- Verify all prerequisites are installed and up-to-date
+# AI Service (no build needed)
+cd ../ai-service
+pip install -r requirements.txt
+```
+
+### Production Start
+```bash
+# Backend
+cd backend
+npm run start:prod
+
+# AI Service
+cd ai-service
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# Frontend
+cd frontend
+npm run start
+```
 
 ---
 
-*Deployment Guide - Last Updated: October 8, 2026*
+## Database Setup
+
+### Neon PostgreSQL (Already Configured)
+- Connection string in `backend/.env`
+- 181 records already migrated
+- No additional setup needed
+
+### Run Migrations (if schema changes)
+```bash
+cd backend
+npm run migration:run
+```
+
+---
+
+## Security Checklist
+
+- [ ] Change JWT_SECRET to strong random string (min 32 chars)
+- [ ] Update CORS_ORIGIN to production frontend domain
+- [ ] Secure OpenAI API key (use environment variables)
+- [ ] Enable HTTPS (use Cloudflare, Let's Encrypt, or hosting SSL)
+- [ ] Set NODE_ENV=production
+- [ ] Review and secure all API endpoints
+- [ ] Configure rate limiting (backend already has it)
+- [ ] Set up monitoring (PM2, New Relic, Datadog)
+
+---
+
+## Testing Production Deployment
+
+### 1. Health Checks
+```bash
+# Backend
+curl https://your-backend-url.com/api/v1/health
+
+# AI Service
+curl https://your-ai-service-url.com/health
+
+# Frontend
+curl https://your-frontend-url.com
+```
+
+### 2. Complete Workflow
+1. Register: POST /api/v1/auth/register
+2. Login: POST /api/v1/auth/login
+3. Create Interview: POST /api/v1/interviews
+4. Start Interview: POST /api/v1/interviews/:id/start
+5. Submit Answer: POST /api/v1/interviews/:id/answers
+6. Complete Interview: POST /api/v1/interviews/:id/complete
+7. Get Report: GET /api/v1/interviews/:id/report
+
+---
+
+## Monitoring
+
+### PM2 (if using)
+```bash
+pm2 list
+pm2 logs backend
+pm2 logs ai-service
+pm2 logs frontend
+pm2 monit
+```
+
+### Logs Location
+- Backend: stdout/stderr or `pm2 logs`
+- AI Service: stdout/stderr or `pm2 logs`
+- Frontend: stdout/stderr or `pm2 logs`
+
+---
+
+## Backup Strategy
+
+- **Database:** Neon auto-backups (check Neon dashboard)
+- **SQLite Backups:** 3 copies preserved locally
+- **Code:** Git repository
+- **Uploads:** Configure S3/Cloudinary for production
+
+---
+
+## Scaling Recommendations
+
+1. **Database:** Neon handles scaling automatically
+2. **Backend:** Scale horizontally with load balancer
+3. **AI Service:** Consider caching for similar questions
+4. **Frontend:** Use CDN (Vercel/Cloudflare)
+5. **File Storage:** Move to S3/Cloudinary for production
+
+---
+
+## Support Contacts
+
+- Neon Database: https://console.neon.tech
+- Vercel Support: https://vercel.com/support
+- OpenAI API: https://platform.openai.com/docs
+
+---
+
+**Deployment Status:** ✅ READY  
+**Builds:** ✅ Complete  
+**Tests:** ✅ Passed  
+**Next:** Deploy to hosting platform

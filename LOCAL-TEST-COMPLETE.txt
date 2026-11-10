@@ -1,0 +1,140 @@
+AI MOCK INTERVIEW - LOCAL DEMONSTRATION READY
+=============================================
+
+SERVICE STATUS
+--------------
+✅ Backend:     http://localhost:3001 (Running)
+✅ AI Service:  http://localhost:8000 (Running)
+✅ Frontend:    http://localhost:3000 (Running)
+✅ Database:    Neon PostgreSQL (Connected - 181 records)
+
+STARTUP COMMANDS
+----------------
+# Backend
+cd backend
+npm run start:dev
+
+# AI Service  
+cd ai-service
+..\.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend
+cd frontend
+npm run dev
+
+ACCESS URLS
+-----------
+Frontend:   http://localhost:3000
+Backend:    http://localhost:3001/api/v1
+AI Service: http://localhost:8000/docs
+
+DEMONSTRATION FLOW
+------------------
+1. REGISTRATION
+   - Go to http://localhost:3000/register
+   - Enter: First Name, Last Name, Email, Password
+   - Click Register
+   - ✅ WORKING: Returns JWT token and redirects
+
+2. LOGIN
+   - Go to http://localhost:3000/login
+   - Enter credentials
+   - Click Login
+   - ✅ WORKING: Authenticates and redirects to dashboard
+
+3. PROFILE SETUP
+   - Go to Dashboard
+   - Click Profile
+   - Fill in: Skills, Experience Level, Career Interests
+   - Save Profile
+   - ✅ WORKING: Profile saved to Neon database
+
+4. RESUME UPLOAD (Optional)
+   - Go to Resumes
+   - Upload PDF/DOCX resume
+   - ✅ WORKING: AI parses resume and extracts skills
+
+5. START INTERVIEW
+   - Go to Dashboard
+   - Click "Start New Interview"
+   - Select: Job Role, Interview Type, Difficulty
+   - Click Start
+   - ✅ WORKING: AI generates first question
+
+6. ANSWER QUESTIONS
+   - Read the question
+   - Type your answer
+   - Submit answer
+   - ✅ WORKING: AI evaluates answer, shows score and feedback
+   - Next question appears automatically
+
+7. COMPLETE INTERVIEW
+   - Answer all questions (or click Complete)
+   - View final report
+   - ✅ WORKING: Shows overall score, strengths, weaknesses
+
+8. VIEW HISTORY
+   - Go to History
+   - See all past interviews
+   - Click on any interview to view detailed report
+   - ✅ WORKING: All interviews stored in database
+
+TESTED FEATURES
+---------------
+✅ User Registration (with firstName, lastName, email, password)
+✅ User Login (returns JWT token)
+✅ JWT Authentication (verified)
+✅ Neon PostgreSQL Connection (181 records preserved)
+✅ Health Endpoints (backend + AI service)
+✅ AI Resume Parsing (/resume/parse)
+✅ AI Question Generation (/questions/generate-adaptive)
+✅ AI Answer Evaluation (/evaluation/evaluate)
+✅ Interview Creation
+✅ Interview Start
+✅ Answer Submission
+✅ Interview Completion
+✅ Report Generation
+✅ Interview History
+
+DATABASE
+--------
+Type: Neon PostgreSQL
+Records: 181 (migrated from SQLite)
+Tables: 10
+Status: Connected ✅
+Backups: 3 SQLite copies preserved
+
+ENVIRONMENT VARIABLES
+--------------------
+Backend (.env):
+- DATABASE_URL: Neon PostgreSQL (configured)
+- JWT_SECRET: Configured
+- AI_SERVICE_URL: http://localhost:8000
+
+Frontend (.env.local):
+- NEXT_PUBLIC_API_URL: http://localhost:3001
+
+AI Service (.env):
+- OPENAI_API_KEY: Configured
+- LLM_PROVIDER: openai
+- LLM_MODEL: gpt-4-turbo
+
+QUICK START FOR DEMO
+--------------------
+All services are ALREADY RUNNING.
+
+Just open: http://localhost:3000
+
+If services stop, restart with:
+1. Backend: cd backend && npm run start:dev
+2. AI Service: cd ai-service && ..\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000
+3. Frontend: cd frontend && npm run dev
+
+TROUBLESHOOTING
+---------------
+- If frontend shows "Cannot connect": Check backend is running on port 3001
+- If questions don't generate: Check AI service on port 8000
+- If database errors: Check Neon PostgreSQL connection in backend/.env
+
+PROJECT STATUS: ✅ READY FOR DEMONSTRATION
+==========================================

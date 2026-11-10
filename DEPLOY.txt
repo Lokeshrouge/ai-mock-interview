@@ -1,0 +1,168 @@
+AI MOCK INTERVIEW - DEPLOYMENT FIXED
+=====================================
+
+FIXES APPLIED
+-------------
+✅ Backend Dockerfile: Install all deps before build, then prune
+✅ Frontend Dockerfile: Multi-stage build already correct
+✅ AI Service Dockerfile: Use dynamic PORT variable
+✅ Added .dockerignore files for all services
+✅ Added railway.json configs
+✅ Added vercel.json config
+✅ No database service in docker-compose (using Neon)
+
+DEPLOYMENT STEPS
+================
+
+METHOD 1: Railway + Vercel (Recommended)
+-----------------------------------------
+
+BACKEND (Railway):
+1. cd backend
+2. railway login
+3. railway init
+4. railway up
+
+Set these environment variables in Railway dashboard:
+- DATABASE_URL = postgresql://neondb_owner:npg_Dui2qtOhn4Ib@ep-long-paper-b3fpsb0u-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+- JWT_SECRET = (generate: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))")
+- AI_SERVICE_URL = https://your-ai-service.up.railway.app
+- CORS_ORIGIN = https://your-frontend.vercel.app
+- NODE_ENV = production
+- PORT = (Railway sets this automatically)
+
+Copy backend URL: https://your-backend.up.railway.app
+
+
+AI SERVICE (Railway):
+1. cd ai-service
+2. railway init
+3. railway up
+
+Set these environment variables in Railway dashboard:
+- OPENAI_API_KEY = your-openai-key-here
+- LLM_PROVIDER = openai
+- LLM_MODEL = gpt-4-turbo
+- PORT = (Railway sets this automatically)
+
+Copy AI service URL: https://your-ai-service.up.railway.app
+
+Go back to backend Railway settings and update:
+- AI_SERVICE_URL = (paste AI service URL)
+
+
+FRONTEND (Vercel):
+1. cd frontend
+2. vercel login
+3. vercel --prod
+
+Set environment variable in Vercel dashboard or CLI:
+- NEXT_PUBLIC_API_URL = https://your-backend.up.railway.app/api/v1
+
+Copy frontend URL: https://your-app.vercel.app
+
+Go back to backend Railway settings and update:
+- CORS_ORIGIN = (paste frontend URL)
+
+
+METHOD 2: Docker Compose (Local/VPS)
+-------------------------------------
+
+1. Create .env file in project root:
+
+DATABASE_URL=postgresql://neondb_owner:npg_Dui2qtOhn4Ib@ep-long-paper-b3fpsb0u-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=your_generated_32_character_secret_here
+OPENAI_API_KEY=your-openai-key-here
+CORS_ORIGIN=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+
+2. Run:
+docker-compose up -d
+
+3. Access:
+Frontend: http://localhost:3000
+Backend: http://localhost:3001
+AI Service: http://localhost:8000
+
+
+TESTING DEPLOYMENT
+==================
+
+Backend Health:
+curl https://your-backend.up.railway.app/api/v1/health
+
+Expected: {"success":true,"data":{"status":"healthy","database":"connected"}}
+
+AI Service Health:
+curl https://your-ai-service.up.railway.app/health
+
+Expected: {"status":"ok","service":"ai-service","provider":"openai"}
+
+Frontend:
+Open: https://your-app.vercel.app
+Expected: Login page loads
+
+Complete Flow Test:
+1. Register new user
+2. Login
+3. Create interview
+4. Answer questions
+5. View report
+
+
+ENVIRONMENT VARIABLES SUMMARY
+=============================
+
+Backend (Railway):
+- DATABASE_URL (Neon PostgreSQL - already provided)
+- JWT_SECRET (generate new)
+- AI_SERVICE_URL (from AI service Railway URL)
+- CORS_ORIGIN (from Vercel frontend URL)
+- NODE_ENV=production
+- PORT (auto-set by Railway)
+
+AI Service (Railway):
+- OPENAI_API_KEY (your key)
+- LLM_PROVIDER=openai
+- LLM_MODEL=gpt-4-turbo
+- PORT (auto-set by Railway)
+
+Frontend (Vercel):
+- NEXT_PUBLIC_API_URL (from backend Railway URL + /api/v1)
+
+
+GITHUB REPOSITORY
+=================
+
+Files changed (safe to commit):
+- backend/Dockerfile (fixed npm ci)
+- backend/.dockerignore (added)
+- backend/railway.json (added)
+- ai-service/Dockerfile (fixed PORT)
+- ai-service/.dockerignore (added)
+- ai-service/railway.json (added)
+- frontend/.dockerignore (added)
+- frontend/vercel.json (added)
+
+Do NOT commit:
+- .env files
+- backend/.env
+- frontend/.env.local
+- Any files with secrets
+
+
+ROLLBACK PLAN
+=============
+
+If deployment fails:
+1. Keep using local development (already working)
+2. All data safe in Neon PostgreSQL
+3. 3 SQLite backups preserved locally
+
+
+DATA STATUS
+===========
+✅ 181 records in Neon PostgreSQL
+✅ Database migration complete
+✅ No data loss risk (external database)
+✅ SQLite backups preserved

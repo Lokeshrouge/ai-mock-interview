@@ -23,12 +23,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           };
         }
         
+        const isProduction = config.get<string>('NODE_ENV') === 'production';
+        
+        // Determine SSL settings based on database URL
+        // Neon requires SSL, but we can detect this from the URL or sslmode parameter
+        const needsSSL = databaseUrl?.includes('neon.tech') || 
+                        databaseUrl?.includes('sslmode=require') ||
+                        isProduction;
+        
         return {
           type: 'postgres',
           url: config.get<string>('DATABASE_URL'),
           autoLoadEntities: true,
-          synchronize: config.get<string>('NODE_ENV') !== 'production',
+          synchronize: false, // NEVER use synchronize with PostgreSQL in any environment
           logging: config.get<string>('NODE_ENV') === 'development' ? ['error', 'warn'] : false,
+          ssl: needsSSL ? { rejectUnauthorized: false } : false,
           extra: {
             max: 20,
             idleTimeoutMillis: 30000,

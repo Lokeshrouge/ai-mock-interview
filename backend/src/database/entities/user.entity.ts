@@ -39,7 +39,7 @@ export class User {
   @Column({ name: 'failed_login_attempts', default: 0 })
   failedLoginAttempts: number;
 
-  @Column({ name: 'locked_until', nullable: true, type: 'datetime' })
+  @Column({ name: 'locked_until', nullable: true, type: 'timestamp' })
   lockedUntil: Date;
 
   @CreateDateColumn({ name: 'created_at' })

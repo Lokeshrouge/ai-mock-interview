@@ -88,10 +88,10 @@ export class Interview {
   @Column({ name: 'job_description', nullable: true, type: 'text' })
   jobDescription: string;
 
-  @Column({ name: 'started_at', nullable: true, type: 'datetime' })
+  @Column({ name: 'started_at', nullable: true, type: 'timestamp' })
   startedAt: Date;
 
-  @Column({ name: 'completed_at', nullable: true, type: 'datetime' })
+  @Column({ name: 'completed_at', nullable: true, type: 'timestamp' })
   completedAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })
